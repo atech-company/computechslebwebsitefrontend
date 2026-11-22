@@ -1,0 +1,78 @@
+{
+  "announcement": "Free expert advice · Warranty support · Lebanon delivery",
+  "heroSlides": [
+    {
+      "id": "gaming",
+      "title": "Gaming laptops built for performance",
+      "subtitle": "High-refresh displays and dedicated GPUs for play and creation.",
+      "cta": "Shop gaming",
+      "href": "/category/gaming-laptops",
+      "image": "/hero/gaming-laptop.jpg",
+      "productSlug": "msi-katana-15-hx-b14wek-002-gaming"
+    },
+    {
+      "id": "business",
+      "title": "Business machines that travel light",
+      "subtitle": "Reliable ThinkPad and EliteBook systems for professionals.",
+      "cta": "Shop business",
+      "href": "/category/business-laptops",
+      "image": "/hero/business-laptop.jpg",
+      "productSlug": "laptop-lenovo-thinkpad-l13-yoga-x360-gen-2"
+    },
+    {
+      "id": "3d-print",
+      "title": "Bring ideas into physical form",
+      "subtitle": "Elegoo and Bambu Lab printers with live stock and local support.",
+      "cta": "Shop 3D printers",
+      "href": "/category/3d-printer",
+      "image": "/hero/3d-printer.jpg",
+      "productSlug": "fdm-3d-printers-elegoo-centauri-carbon-2-combo-fdm-3d-printer"
+    },
+    {
+      "id": "laptops",
+      "title": "Explore the Computechs laptop range",
+      "subtitle": "New, used, and convertible notebooks from our live WooCommerce catalog.",
+      "cta": "Browse laptops",
+      "href": "/category/laptops",
+      "image": "/hero/convertible-laptop.jpg"
+    }
+  ],
+  "why": [
+    {
+      "title": "Real inventory",
+      "description": "Live stock from our WooCommerce catalog — what you see is what we sell."
+    },
+    {
+      "title": "Local expertise",
+      "description": "Guidance for laptops, gaming builds, and creative workflows in Lebanon."
+    },
+    {
+      "title": "Warranty support",
+      "description": "Clear warranty and after-sales paths for eligible products."
+    },
+    {
+      "title": "Secure checkout",
+      "description": "Guest checkout powered by WooCommerce Store API totals and payments."
+    }
+  ],
+  "promoBanners": [
+    {
+      "title": "Gaming laptops",
+      "subtitle": "Performance ready for play and creation",
+      "href": "/category/gaming-laptops",
+      "tone": "dark"
+    },
+    {
+      "title": "Business laptops",
+      "subtitle": "Reliable machines for professionals",
+      "href": "/category/business-laptops",
+      "tone": "light"
+    },
+    {
+      "title": "3D printers",
+      "subtitle": "Bring ideas into physical form",
+      "href": "/category/3d-printer",
+      "tone": "cyan"
+    }
+  ]
+}

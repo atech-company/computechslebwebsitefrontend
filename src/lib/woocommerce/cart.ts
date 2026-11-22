@@ -1,0 +1,397 @@
+import { cookies } from "next/headers";
+import { storeFetch } from "@/lib/woocommerce/store-client";
+import { WooCommerceError } from "@/lib/woocommerce/errors";
+import type { StoreCart, StoreCheckout } from "@/types/woocommerce";
+
+export const CART_TOKEN_COOKIE = "computechs_cart_token";
+export const CART_NONCE_COOKIE = "computechs_cart_nonce";
+
+export async function readCartSession(): Promise<{
+  cartToken: string | null;
+  nonce: string | null;
+}> {
+  const jar = await cookies();
+  return {
+    cartToken: jar.get(CART_TOKEN_COOKIE)?.value ?? null,
+    nonce: jar.get(CART_NONCE_COOKIE)?.value ?? null,
+  };
+}
+
+function cartItemCount(data: unknown): number {
+  if (!data || typeof data !== "object") return 0;
+  const items = (data as { items?: unknown }).items;
+  return Array.isArray(items) ? items.length : 0;
+}
+
+function sessionReadQuery() {
+  // Some WordPress/CDN configurations cache Store API GET responses without
+  // varying on Cart-Token. A unique query value keeps one customer's empty
+  // cart (or checkout draft) from being reused for another session/read.
+  return { _session_read: crypto.randomUUID() };
+}
+
+export async function persistCartSession(
+  cartToken: string | null,
+  nonce: string | null,
+): Promise<void> {
+  const jar = await cookies();
+  const common = {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  };
+  if (cartToken) {
+    jar.set(CART_TOKEN_COOKIE, cartToken, common);
+  }
+  if (nonce) {
+    jar.set(CART_NONCE_COOKIE, nonce, common);
+  }
+}
+
+async function persistSessionIfSafe(options: {
+  incomingToken: string | null;
+  incomingNonce: string | null;
+  outgoingToken: string | null;
+  outgoingNonce: string | null;
+  outgoingItemCount: number;
+  keepIncomingIfEmptyRotate?: boolean;
+}): Promise<void> {
+  const latest = await readCartSession();
+  const outgoingToken =
+    options.outgoingToken ?? options.incomingToken ?? latest.cartToken;
+  const outgoingNonce =
+    options.outgoingNonce ?? options.incomingNonce ?? latest.nonce;
+
+  // A slower GET /cart that started without a cookie can return a new empty
+  // cart after add-to-cart already saved a full-cart token. Never clobber it.
+  if (
+    options.keepIncomingIfEmptyRotate &&
+    latest.cartToken &&
+    latest.cartToken !== options.incomingToken &&
+    latest.cartToken !== outgoingToken &&
+    options.outgoingItemCount === 0
+  ) {
+    return;
+  }
+
+  if (
+    options.keepIncomingIfEmptyRotate &&
+    options.incomingToken &&
+    outgoingToken &&
+    outgoingToken !== options.incomingToken &&
+    options.outgoingItemCount === 0
+  ) {
+    await persistCartSession(options.incomingToken, options.incomingNonce);
+    return;
+  }
+
+  await persistCartSession(outgoingToken, outgoingNonce);
+}
+
+async function fetchStoreCart(session: {
+  cartToken: string | null;
+  nonce: string | null;
+}) {
+  const first = await storeFetch<StoreCart>({
+    path: "/cart",
+    query: sessionReadQuery(),
+    cartToken: session.cartToken,
+    nonce: session.nonce,
+    cache: "no-store",
+  });
+
+  const firstCount = cartItemCount(first.data);
+  const rotatedEmpty =
+    Boolean(session.cartToken) &&
+    firstCount === 0 &&
+    Boolean(first.cartToken) &&
+    first.cartToken !== session.cartToken;
+
+  if (!rotatedEmpty) {
+    return first;
+  }
+
+  const retry = await storeFetch<StoreCart>({
+    path: "/cart",
+    query: sessionReadQuery(),
+    cartToken: session.cartToken,
+    nonce: session.nonce,
+    cache: "no-store",
+  });
+  if (cartItemCount(retry.data) > 0) return retry;
+
+  return {
+    ...first,
+    cartToken: session.cartToken,
+    nonce: session.nonce,
+  };
+}
+
+async function withSessionUpdate<T>(
+  runner: (session: {
+    cartToken: string | null;
+    nonce: string | null;
+  }) => Promise<{
+    data: T;
+    cartToken: string | null;
+    nonce: string | null;
+  }>,
+  options?: { keepIncomingIfEmptyRotate?: boolean },
+): Promise<T> {
+  const session = await readCartSession();
+  const result = await runner(session);
+  await persistSessionIfSafe({
+    incomingToken: session.cartToken,
+    incomingNonce: session.nonce,
+    outgoingToken: result.cartToken,
+    outgoingNonce: result.nonce,
+    outgoingItemCount: cartItemCount(result.data),
+    keepIncomingIfEmptyRotate: options?.keepIncomingIfEmptyRotate,
+  });
+  return result.data;
+}
+
+export async function getCart(): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await fetchStoreCart(session);
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  }, { keepIncomingIfEmptyRotate: true });
+}
+
+export async function addCartItem(input: {
+  id: number;
+  quantity?: number;
+  variation?: Array<{ attribute: string; value: string }>;
+}): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await storeFetch<StoreCart>({
+      method: "POST",
+      path: "/cart/add-item",
+      cartToken: session.cartToken,
+      nonce: session.nonce,
+      body: {
+        id: input.id,
+        quantity: input.quantity ?? 1,
+        variation: input.variation,
+      },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  });
+}
+
+export async function updateCartItem(input: {
+  key: string;
+  quantity: number;
+}): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await storeFetch<StoreCart>({
+      method: "POST",
+      path: "/cart/update-item",
+      cartToken: session.cartToken,
+      nonce: session.nonce,
+      body: {
+        key: input.key,
+        quantity: input.quantity,
+      },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  });
+}
+
+export async function removeCartItem(key: string): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await storeFetch<StoreCart>({
+      method: "POST",
+      path: "/cart/remove-item",
+      cartToken: session.cartToken,
+      nonce: session.nonce,
+      body: { key },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  });
+}
+
+export async function applyCoupon(code: string): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await storeFetch<StoreCart>({
+      method: "POST",
+      path: "/cart/apply-coupon",
+      cartToken: session.cartToken,
+      nonce: session.nonce,
+      body: { code },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  });
+}
+
+export async function removeCoupon(code: string): Promise<StoreCart> {
+  return withSessionUpdate(async (session) => {
+    const res = await storeFetch<StoreCart>({
+      method: "POST",
+      path: "/cart/remove-coupon",
+      cartToken: session.cartToken,
+      nonce: session.nonce,
+      body: { code },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken,
+      nonce: res.nonce,
+    };
+  });
+}
+
+const BILLING_KEYS = [
+  "first_name",
+  "last_name",
+  "company",
+  "address_1",
+  "address_2",
+  "city",
+  "state",
+  "postcode",
+  "country",
+  "phone",
+  "email",
+] as const;
+
+const SHIPPING_KEYS = [
+  "first_name",
+  "last_name",
+  "company",
+  "address_1",
+  "address_2",
+  "city",
+  "state",
+  "postcode",
+  "country",
+  "phone",
+] as const;
+
+function pickAddress(
+  source: Record<string, string>,
+  keys: readonly string[],
+): Record<string, string> {
+  const next: Record<string, string> = {};
+  for (const key of keys) {
+    next[key] = source[key] ?? "";
+  }
+  if (!next.country) next.country = "LB";
+  return next;
+}
+
+function emptyCheckout(cart: StoreCart): StoreCheckout {
+  return {
+    order_id: 0,
+    status: "",
+    order_key: "",
+    order_number: "",
+    customer_note: "",
+    customer_id: 0,
+    billing_address: {},
+    shipping_address: {},
+    payment_method: cart.payment_methods?.[0] ?? "",
+    payment_result: null,
+    additional_fields: {},
+    __experimentalCart: cart,
+  };
+}
+
+export async function getCheckout(): Promise<StoreCheckout> {
+  return withSessionUpdate(async (session) => {
+    const cartRes = await fetchStoreCart(session);
+    const cartToken = cartRes.cartToken ?? session.cartToken;
+    const nonce = cartRes.nonce ?? session.nonce;
+    const cart = cartRes.data;
+
+    if (!cart.items?.length) {
+      return {
+        data: emptyCheckout(cart),
+        cartToken: session.cartToken ?? cartToken,
+        nonce: session.nonce ?? nonce,
+      };
+    }
+
+    const res = await storeFetch<StoreCheckout>({
+      path: "/checkout",
+      query: sessionReadQuery(),
+      cartToken,
+      nonce,
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken ?? cartToken,
+      nonce: res.nonce ?? nonce,
+    };
+  }, { keepIncomingIfEmptyRotate: true });
+}
+
+export async function submitCheckout(payload: {
+  billing_address: Record<string, string>;
+  shipping_address: Record<string, string>;
+  customer_note?: string;
+  payment_method: string;
+}): Promise<StoreCheckout> {
+  return withSessionUpdate(async (session) => {
+    const cartRes = await fetchStoreCart(session);
+    const cartToken = cartRes.cartToken ?? session.cartToken;
+    const nonce = cartRes.nonce ?? session.nonce;
+
+    if (!cartRes.data.items?.length) {
+      throw new WooCommerceError(
+        "Your cart is empty. Add a product before checkout.",
+        400,
+        "woocommerce_rest_cart_empty",
+      );
+    }
+
+    const res = await storeFetch<StoreCheckout>({
+      method: "POST",
+      path: "/checkout",
+      cartToken,
+      nonce,
+      body: {
+        billing_address: pickAddress(payload.billing_address, BILLING_KEYS),
+        shipping_address: pickAddress(payload.shipping_address, SHIPPING_KEYS),
+        customer_note: payload.customer_note || "",
+        payment_method: payload.payment_method,
+        payment_data: [],
+        create_account: false,
+      },
+      cache: "no-store",
+    });
+    return {
+      data: res.data,
+      cartToken: res.cartToken ?? cartToken,
+      nonce: res.nonce ?? nonce,
+    };
+  });
+}

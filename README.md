@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Computechs 2.0 Storefront
 
-## Getting Started
+Premium Next.js storefront for [computechsleb.com](https://computechsleb.com), connected to the live WooCommerce backend at [wp.computechsleb.com](https://wp.computechsleb.com).
 
-First, run the development server:
+## Architecture
+
+- **Catalog**: Server Components fetch WooCommerce Store API (ISR/revalidate).
+- **Cart / checkout**: Browser → Next.js Route Handlers (BFF) → Store API with `Cart-Token` + `Nonce` httpOnly cookies (required because WP CORS has no `Access-Control-Allow-Origin`).
+- **Admin REST v3**: server-only consumer key/secret for gateway audit and future order history.
+- **Accounts**: UI ready; auth deferred (see `docs/auth-architecture.md`).
+
+## Setup
 
 ```bash
+npm install
+cp .env.example .env.local
+# Add WC_CONSUMER_KEY / WC_CONSUMER_SECRET when available
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000/en](http://localhost:3000/en).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+|----------|---------|
+| `WOOCOMMERCE_URL` | `https://wp.computechsleb.com` |
+| `NEXT_PUBLIC_SITE_URL` | Storefront URL |
+| `WC_CONSUMER_KEY` / `WC_CONSUMER_SECRET` | Server-only WC REST v3 |
+| `WC_WEBHOOK_SECRET` | Cache revalidation webhook |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp inquiry |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` — development server
+- `npm run build` / `npm start` — production
+- `npm run typecheck` — TypeScript
+- `npm run lint` — ESLint
+- `npm test` — Vitest unit tests
+- `npx playwright test` — browser smoke tests (start `npm run dev` first)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Docs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `PROGRESS.md` — phase status
+- `docs/auth-architecture.md`
+- `docs/checkout-gateway-audit.md`
+- `docs/wordpress-content-requirements.md`
 
-## Deploy on Vercel
+## Deploy (Vercel)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Set environment variables in Vercel
+2. Deploy staging first
+3. Point `computechsleb.com` after full journey testing
+4. Configure WooCommerce webhook to `/api/webhooks/woocommerce` for catalog revalidation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Do not modify the live WordPress database without authorization.
