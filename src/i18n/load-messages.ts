@@ -1,15 +1,16 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import arMessages from "../../messages/ar.json";
+import enMessages from "../../messages/en.json";
 import { routing, type AppLocale } from "@/i18n/routing";
+
+const messagesByLocale: Record<AppLocale, Record<string, unknown>> = {
+  ar: arMessages,
+  en: enMessages,
+};
 
 export async function loadMessages(locale: string) {
   const safeLocale = routing.locales.includes(locale as AppLocale)
-    ? locale
+    ? (locale as AppLocale)
     : routing.defaultLocale;
-  const raw = await readFile(
-    join(process.cwd(), "messages", `${safeLocale}.json`),
-    "utf8",
-  );
-  return JSON.parse(raw) as Record<string, unknown>;
+  return messagesByLocale[safeLocale];
 }
