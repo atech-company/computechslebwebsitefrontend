@@ -1,24 +1,16 @@
-# Customer authentication (next phase)
+# Customer authentication
 
-## Current state (Option C)
+Shopper sessions live on the Next.js domain. WooCommerce REST keys stay server-side and are never used as customer credentials.
 
-- Guest checkout works via Store API + Cart-Token cookies.
-- Wishlist/compare/recently viewed persist in localStorage.
-- Account UI is complete but login/register are intentionally disabled.
+## Flows
 
-## Next-phase design
+1. **Email register / login** — BFF creates or looks up a WC customer and stores a password hash in customer meta (`_computechs_password`). A signed httpOnly cookie (`computechs_session`) is issued.
+2. **Google** — `/api/auth/google` starts OAuth; `/api/auth/google/callback` creates or links the WC customer by email.
+3. **Phone** — `/api/auth/phone/send` stores a hashed OTP and sends SMS via Twilio. `/api/auth/phone/verify` creates or logs in the customer. Without Twilio, local development returns the OTP in the JSON body.
 
-1. Add **dedicated customer authentication endpoints** on WordPress (narrowly scoped plugin or custom REST routes). Do **not** use:
-   - Administrator REST keys as customer credentials
-   - WordPress Application Passwords as shopper login
-2. Next.js BFF routes under `/api/auth/*` exchange credentials server-side.
-3. Issue an **HTTP-only, Secure, SameSite=Lax** session cookie from the Next.js domain.
-4. Authenticated order history uses customer-scoped WordPress/WooCommerce APIs with that session — never public cache.
-5. Optional: sync local wishlist to a customer meta endpoint after login.
+## Security
 
-## Security requirements
-
-- CSRF protection on mutating auth routes
-- Rate limiting on login
+- HTTP-only, Secure (production), SameSite=Lax session cookie
+- Rate limits on register, login, and OTP routes
 - No secrets in client bundles
-- Authorization checks before returning any order payload
+- Order history remains customer-scoped and uncached (follow-up)

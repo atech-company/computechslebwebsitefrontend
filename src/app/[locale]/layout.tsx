@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { AppProviders } from "@/components/providers/app-providers";
 import { SiteShell } from "@/components/layout/site-shell";
 import { getCategories } from "@/lib/woocommerce/products";
+import { getActiveSponsorCampaign } from "@/lib/sponsor-popup-server";
 
 type Props = {
   children: React.ReactNode;
@@ -31,13 +32,18 @@ export default async function LocaleLayout({ children, params }: Props) {
     categories = [];
   }
 
+  const sponsorCampaign = getActiveSponsorCampaign(locale);
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AppProviders>
         <div lang={locale} dir={dir} className={locale === "ar" ? "font-[family-name:var(--font-arabic)]" : undefined}>
-          <SiteShell categories={categories} locale={locale}>
+          <SiteShell
+            categories={categories}
+            locale={locale}
+            sponsorCampaign={sponsorCampaign}
+          >
             {children}
           </SiteShell>
         </div>

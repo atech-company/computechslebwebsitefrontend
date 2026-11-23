@@ -60,10 +60,9 @@ export default async function DealsPage({ params, searchParams }: Props) {
           values={{ ...sp, on_sale: "true" }}
           categories={categories}
           showOnSale={false}
+          resultCount={result.total}
           hiddenFields={{ on_sale: "true" }}
-        />
-
-        <div className="mt-8">
+        >
           {result.products.length ? (
             <ProductGrid
               products={result.products}
@@ -75,14 +74,13 @@ export default async function DealsPage({ params, searchParams }: Props) {
               {tCommon("noResults")}
             </p>
           )}
-        </div>
-
-        <CatalogPagination
-          pathname="/deals"
-          page={listParams.page ?? 1}
-          totalPages={result.totalPages}
-          searchParams={{ ...sp, on_sale: "true" }}
-        />
+          <CatalogPagination
+            pathname="/deals"
+            page={listParams.page ?? 1}
+            totalPages={result.totalPages}
+            searchParams={{ ...sp, on_sale: "true" }}
+          />
+        </CatalogFilters>
       </FadeIn>
     </div>
   );

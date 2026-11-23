@@ -10,6 +10,13 @@ const serverSchema = z.object({
   WC_WEBHOOK_SECRET: z.string().optional().default(""),
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_WHATSAPP_NUMBER: z.string().optional().default(""),
+  AUTH_SECRET: z.string().optional().default(""),
+  AUTH_GOOGLE_CLIENT_ID: z.string().optional().default(""),
+  AUTH_GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  AUTH_TWILIO_ACCOUNT_SID: z.string().optional().default(""),
+  AUTH_TWILIO_AUTH_TOKEN: z.string().optional().default(""),
+  AUTH_TWILIO_FROM: z.string().optional().default(""),
+  SPONSOR_POPUP_ENABLED: z.string().optional().default(""),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
@@ -25,6 +32,13 @@ export function getServerEnv(): ServerEnv {
     WC_WEBHOOK_SECRET: process.env.WC_WEBHOOK_SECRET,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    AUTH_GOOGLE_CLIENT_ID: process.env.AUTH_GOOGLE_CLIENT_ID,
+    AUTH_GOOGLE_CLIENT_SECRET: process.env.AUTH_GOOGLE_CLIENT_SECRET,
+    AUTH_TWILIO_ACCOUNT_SID: process.env.AUTH_TWILIO_ACCOUNT_SID,
+    AUTH_TWILIO_AUTH_TOKEN: process.env.AUTH_TWILIO_AUTH_TOKEN,
+    AUTH_TWILIO_FROM: process.env.AUTH_TWILIO_FROM,
+    SPONSOR_POPUP_ENABLED: process.env.SPONSOR_POPUP_ENABLED,
   });
   if (!parsed.success) {
     throw new Error(

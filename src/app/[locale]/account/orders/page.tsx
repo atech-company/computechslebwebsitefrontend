@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AccountShell } from "@/components/account/account-shell";
+import { getSessionUser } from "@/lib/auth/session";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -13,12 +14,15 @@ export default async function AccountOrdersPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("account");
+  const user = await getSessionUser();
 
   return (
-    <AccountShell title={t("orders")}>
+    <AccountShell title={t("orders")} user={user}>
       <div className="space-y-3">
         <p className="text-muted">{t("ordersEmpty")}</p>
-        <p className="text-sm text-muted">{t("authComingSoon")}</p>
+        {!user ? (
+          <p className="text-sm text-muted">{t("signInForOrders")}</p>
+        ) : null}
       </div>
     </AccountShell>
   );

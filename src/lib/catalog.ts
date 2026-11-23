@@ -39,7 +39,7 @@ export function parsePerPage(value?: string, fallback = 12): number {
 
 export function parseGridView(
   value?: string,
-  fallback: GridView = 4,
+  fallback: GridView = 3,
 ): GridView {
   const n = Number(value);
   return (GRID_VIEW_OPTIONS as readonly number[]).includes(n)

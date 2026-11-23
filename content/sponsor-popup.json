@@ -1,0 +1,54 @@
+{
+  "id": "drivo-confirm-pickup-2026",
+  "enabled": true,
+  "startAt": null,
+  "endAt": null,
+  "delayMs": 1600,
+  "frequencyMode": "days",
+  "frequencyDays": 7,
+  "locales": ["en", "ar"],
+  "devices": ["desktop", "tablet", "mobile"],
+  "includePaths": [],
+  "excludePaths": ["/checkout"],
+  "appearance": {
+    "accent": "#087CFF",
+    "accentSoft": "#42B6FF",
+    "navy": "#071638",
+    "surface": "#F4F9FF"
+  },
+  "image": "/sponsors/drivo-confirm-pickup.png",
+  "playUrl": "https://play.google.com/store/apps/details?id=com.drivo.mobile&pli=1",
+  "siteUrl": "https://drivo.tech/",
+  "copy": {
+    "en": {
+      "badge": "Sponsored · Drivo",
+      "title": "Confirm pickup with confidence",
+      "body": "Mark the order as picked up, then keep both sides updated while waiting for sender confirmation.",
+      "highlights": [
+        "Mark as picked up in one tap",
+        "Keep customer and sender informed",
+        "Track sender confirmation in real time"
+      ],
+      "playCta": "Get it on Google Play",
+      "siteCta": "Visit drivo.tech",
+      "dismiss": "Not now",
+      "close": "Close advertisement",
+      "imageAlt": "Drivo driver app confirming pickup in Beirut, with live order status and a courier on a scooter"
+    },
+    "ar": {
+      "badge": "إعلان برعاية · درايفو",
+      "title": "أكّد الاستلام بثقة",
+      "body": "علّم الطلب كمستلم، وأبقِ الطرفين على اطلاع أثناء انتظار تأكيد المرسل.",
+      "highlights": [
+        "تأكيد الاستلام بنقرة واحدة",
+        "إبقاء الزبون والمرسل على اطلاع",
+        "تتبع تأكيد المرسل لحظياً"
+      ],
+      "playCta": "حمّله من Google Play",
+      "siteCta": "زيارة drivo.tech",
+      "dismiss": "ليس الآن",
+      "close": "إغلاق الإعلان",
+      "imageAlt": "تطبيق درايفو للسائق يؤكد الاستلام في بيروت مع حالة الطلب المباشرة وموصل على دراجة"
+    }
+  }
+}

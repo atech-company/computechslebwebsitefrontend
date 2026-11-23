@@ -61,9 +61,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
           values={sp}
           categories={categories}
           resultCount={result.total}
-        />
-
-        <div className="mt-8">
+        >
           {result.products.length ? (
             <ProductGrid
               products={result.products}
@@ -75,14 +73,13 @@ export default async function ShopPage({ params, searchParams }: Props) {
               {tCommon("noResults")}
             </p>
           )}
-        </div>
-
-        <CatalogPagination
-          pathname="/shop"
-          page={listParams.page ?? 1}
-          totalPages={result.totalPages}
-          searchParams={sp}
-        />
+          <CatalogPagination
+            pathname="/shop"
+            page={listParams.page ?? 1}
+            totalPages={result.totalPages}
+            searchParams={sp}
+          />
+        </CatalogFilters>
       </FadeIn>
     </div>
   );

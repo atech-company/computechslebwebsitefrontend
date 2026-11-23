@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AccountShell } from "@/components/account/account-shell";
+import { getSessionUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,9 +17,10 @@ export default async function AccountAddressesPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("account");
+  const user = await getSessionUser();
 
   return (
-    <AccountShell title={t("addresses")}>
+    <AccountShell title={t("addresses")} user={user}>
       <form className="max-w-xl space-y-4">
         <p className="text-sm text-muted">{t("formsDeferred")}</p>
         <div className="grid gap-4 sm:grid-cols-2">

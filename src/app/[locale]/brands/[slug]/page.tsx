@@ -76,9 +76,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
           showOnSale
           resultCount={result.total}
           hiddenFields={{ brand: String(brand.id) }}
-        />
-
-        <div className="mt-8">
+        >
           {result.products.length ? (
             <ProductGrid
               products={result.products}
@@ -90,14 +88,13 @@ export default async function BrandPage({ params, searchParams }: Props) {
               {tCommon("noResults")}
             </p>
           )}
-        </div>
-
-        <CatalogPagination
-          pathname={`/brands/${slug}`}
-          page={listParams.page ?? 1}
-          totalPages={result.totalPages}
-          searchParams={sp}
-        />
+          <CatalogPagination
+            pathname={`/brands/${slug}`}
+            page={listParams.page ?? 1}
+            totalPages={result.totalPages}
+            searchParams={sp}
+          />
+        </CatalogFilters>
       </FadeIn>
     </div>
   );

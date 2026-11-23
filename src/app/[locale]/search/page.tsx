@@ -73,9 +73,12 @@ export default async function SearchPage({ params, searchParams }: Props) {
           </p>
         </div>
 
-        <CatalogFilters values={sp} categories={categories} showSearch />
-
-        <div className="mt-8">
+        <CatalogFilters
+          values={sp}
+          categories={categories}
+          showSearch
+          resultCount={result.total}
+        >
           {q && result.products.length ? (
             <ProductGrid
               products={result.products}
@@ -87,16 +90,15 @@ export default async function SearchPage({ params, searchParams }: Props) {
               {tCommon("noResults")}
             </p>
           ) : null}
-        </div>
-
-        {q ? (
-          <CatalogPagination
-            pathname="/search"
-            page={listParams.page ?? 1}
-            totalPages={result.totalPages}
-            searchParams={sp}
-          />
-        ) : null}
+          {q ? (
+            <CatalogPagination
+              pathname="/search"
+              page={listParams.page ?? 1}
+              totalPages={result.totalPages}
+              searchParams={sp}
+            />
+          ) : null}
+        </CatalogFilters>
       </FadeIn>
     </div>
   );

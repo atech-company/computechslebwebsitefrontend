@@ -7,7 +7,7 @@ Premium Next.js storefront for [computechsleb.com](https://computechsleb.com), c
 - **Catalog**: Server Components fetch WooCommerce Store API (ISR/revalidate).
 - **Cart / checkout**: Browser → Next.js Route Handlers (BFF) → Store API with `Cart-Token` + `Nonce` httpOnly cookies (required because WP CORS has no `Access-Control-Allow-Origin`).
 - **Admin REST v3**: server-only consumer key/secret for gateway audit and future order history.
-- **Accounts**: UI ready; auth deferred (see `docs/auth-architecture.md`).
+- **Accounts**: Next.js BFF session cookie; WooCommerce customers for email, Google, and phone registration.
 
 ## Setup
 
@@ -29,6 +29,10 @@ Open [http://localhost:3000/en](http://localhost:3000/en).
 | `WC_CONSUMER_KEY` / `WC_CONSUMER_SECRET` | Server-only WC REST v3 |
 | `WC_WEBHOOK_SECRET` | Cache revalidation webhook |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp inquiry |
+| `AUTH_SECRET` | Signing key for storefront sessions (min 16 chars) |
+| `AUTH_GOOGLE_CLIENT_ID` / `AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth (redirect `{SITE}/api/auth/google/callback`) |
+| `AUTH_TWILIO_ACCOUNT_SID` / `AUTH_TWILIO_AUTH_TOKEN` / `AUTH_TWILIO_FROM` | SMS OTP for phone registration |
+| `SPONSOR_POPUP_ENABLED` | Instant Drivo popup kill switch (`on` / `off`). Empty uses `content/sponsor-popup.json` |
 
 ## Scripts
 

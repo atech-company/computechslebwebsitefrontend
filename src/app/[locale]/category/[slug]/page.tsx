@@ -113,9 +113,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           showCategory={false}
           resultCount={result.total}
           hiddenFields={{ category: categoryFilter }}
-        />
-
-        <div className="mt-8">
+        >
           {result.products.length ? (
             <ProductGrid
               products={result.products}
@@ -127,14 +125,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               {tCommon("noResults")}
             </p>
           )}
-        </div>
-
-        <CatalogPagination
-          pathname={`/category/${slug}`}
-          page={page}
-          totalPages={result.totalPages}
-          searchParams={{ ...sp, category: categoryFilter }}
-        />
+          <CatalogPagination
+            pathname={`/category/${slug}`}
+            page={page}
+            totalPages={result.totalPages}
+            searchParams={{ ...sp, category: categoryFilter }}
+          />
+        </CatalogFilters>
       </FadeIn>
     </div>
   );
