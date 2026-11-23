@@ -68,6 +68,7 @@ export async function getProducts(params: ProductListParams = {}): Promise<{
   const result = await storeFetch<StoreProduct[]>({
     path: "/products",
     query,
+    cache: "force-cache",
     next: { revalidate: CATALOG_REVALIDATE, tags: ["products"] },
   });
 
@@ -90,6 +91,7 @@ export async function getProductById(
 ): Promise<ProductCardModel | null> {
   const result = await storeFetch<StoreProduct>({
     path: `/products/${id}`,
+    cache: "force-cache",
     next: { revalidate: CATALOG_REVALIDATE, tags: [`product-${id}`] },
   });
   return normalizeProduct(result.data);
@@ -102,6 +104,7 @@ export async function getRelatedProducts(
   const result = await storeFetch<StoreProduct[]>({
     path: "/products",
     query: { related: id, per_page: perPage },
+    cache: "force-cache",
     next: { revalidate: CATALOG_REVALIDATE, tags: [`related-${id}`] },
   });
   return normalizeProducts(result.data || []);
@@ -120,6 +123,7 @@ const fetchAllCategories = cache(async function fetchAllCategories() {
   const result = await storeFetch<StoreCategory[]>({
     path: "/products/categories",
     query: { per_page: 100, hide_empty: false },
+    cache: "force-cache",
     next: { revalidate: 300, tags: ["categories"] },
   });
   return uniqueById(result.data || []);
@@ -186,6 +190,7 @@ export const getBrands = cache(async function getBrands(
   const result = await storeFetch<StoreBrand[]>({
     path: "/products/brands",
     query: { per_page: perPage, hide_empty: true },
+    cache: "force-cache",
     next: { revalidate: 300, tags: ["brands"] },
   });
   return uniqueById(result.data || []);
@@ -212,6 +217,7 @@ export async function getProductAttributes() {
     }>
   >({
     path: "/products/attributes",
+    cache: "force-cache",
     next: { revalidate: 600, tags: ["attributes"] },
   });
   return result.data || [];
@@ -233,6 +239,7 @@ export async function getCollectionData(params: {
         ? "yes"
         : undefined,
     },
+    cache: "force-cache",
     next: { revalidate: 120, tags: ["collection-data"] },
   });
 }

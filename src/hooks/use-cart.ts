@@ -21,6 +21,9 @@ export function useCartQuery() {
       fetch("/api/cart", { credentials: "same-origin" }).then((r) =>
         parseJson<StoreCart>(r),
       ),
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1500 * (attempt + 1), 4000),
+    refetchOnWindowFocus: false,
   });
 }
 

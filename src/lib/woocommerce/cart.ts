@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { storeFetch } from "@/lib/woocommerce/store-client";
-import { WooCommerceError } from "@/lib/woocommerce/errors";
+import { isWooCommerceError, WooCommerceError } from "@/lib/woocommerce/errors";
 import type { StoreCart, StoreCheckout } from "@/types/woocommerce";
 
 export const CART_TOKEN_COOKIE = "computechs_cart_token";
@@ -23,11 +23,57 @@ function cartItemCount(data: unknown): number {
   return Array.isArray(items) ? items.length : 0;
 }
 
-function sessionReadQuery() {
-  // Some WordPress/CDN configurations cache Store API GET responses without
-  // varying on Cart-Token. A unique query value keeps one customer's empty
-  // cart (or checkout draft) from being reused for another session/read.
-  return { _session_read: crypto.randomUUID() };
+export function emptyStoreCart(): StoreCart {
+  return {
+    items: [],
+    coupons: [],
+    totals: {
+      total_items: "0",
+      total_items_tax: "0",
+      total_fees: "0",
+      total_fees_tax: "0",
+      total_discount: "0",
+      total_discount_tax: "0",
+      total_shipping: null,
+      total_shipping_tax: null,
+      total_price: "0",
+      total_tax: "0",
+      tax_lines: [],
+      currency_code: "USD",
+      currency_symbol: "$",
+      currency_minor_unit: 2,
+      currency_decimal_separator: ".",
+      currency_thousand_separator: ",",
+      currency_prefix: "$",
+      currency_suffix: "",
+    },
+    shipping_address: {},
+    billing_address: {},
+    needs_payment: false,
+    needs_shipping: false,
+    payment_requirements: [],
+    has_calculated_shipping: false,
+    shipping_rates: [],
+    items_count: 0,
+    items_weight: 0,
+    cross_sells: [],
+    errors: [],
+    payment_methods: [],
+    extensions: {},
+  };
+}
+
+function isUpstreamUnavailable(error: unknown) {
+  if (!isWooCommerceError(error)) return false;
+  return (
+    error.status === 408 ||
+    error.status === 502 ||
+    error.status === 503 ||
+    error.status === 504 ||
+    error.code === "timeout" ||
+    error.code === "waf_blocked" ||
+    error.code === "network_error"
+  );
 }
 
 export async function persistCartSession(
@@ -96,10 +142,11 @@ async function fetchStoreCart(session: {
 }) {
   const first = await storeFetch<StoreCart>({
     path: "/cart",
-    query: sessionReadQuery(),
     cartToken: session.cartToken,
     nonce: session.nonce,
     cache: "no-store",
+    timeoutMs: 6_000,
+    retries: 1,
   });
 
   const firstCount = cartItemCount(first.data);
@@ -115,10 +162,11 @@ async function fetchStoreCart(session: {
 
   const retry = await storeFetch<StoreCart>({
     path: "/cart",
-    query: sessionReadQuery(),
     cartToken: session.cartToken,
     nonce: session.nonce,
     cache: "no-store",
+    timeoutMs: 6_000,
+    retries: 0,
   });
   if (cartItemCount(retry.data) > 0) return retry;
 
@@ -162,6 +210,17 @@ export async function getCart(): Promise<StoreCart> {
       nonce: res.nonce,
     };
   }, { keepIncomingIfEmptyRotate: true });
+}
+
+export async function getCartSafe(): Promise<StoreCart> {
+  try {
+    return await getCart();
+  } catch (error) {
+    if (isUpstreamUnavailable(error)) {
+      return emptyStoreCart();
+    }
+    throw error;
+  }
 }
 
 export async function addCartItem(input: {
@@ -341,7 +400,6 @@ export async function getCheckout(): Promise<StoreCheckout> {
 
     const res = await storeFetch<StoreCheckout>({
       path: "/checkout",
-      query: sessionReadQuery(),
       cartToken,
       nonce,
       cache: "no-store",

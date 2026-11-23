@@ -5,6 +5,9 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   images: {
+    // Next's optimizer fetches WP as a server; Hostinger WAF 403s those
+    // requests and ties up Node workers until the proxy returns 504/503.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

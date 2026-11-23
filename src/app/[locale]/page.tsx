@@ -32,6 +32,7 @@ export default async function HomePage({ params }: Props) {
     deals: deals.products,
     featured: featured.products,
     ctaFallback: t("shopNow"),
+    locale,
   });
   const topCategories = categories.filter((c) => c.parent === 0).slice(0, 8);
 
@@ -41,7 +42,11 @@ export default async function HomePage({ params }: Props) {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
-          <SectionHeading title={t("shopByCategory")} href="/shop" actionLabel={t("viewAll")} />
+          <SectionHeading
+            title={t("shopByCategory")}
+            href="/shop"
+            actionLabel={t("viewAll")}
+          />
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {topCategories.map((cat) => (
               <Link
@@ -77,7 +82,11 @@ export default async function HomePage({ params }: Props) {
       <section className="bg-slate-50 py-16 dark:bg-slate-950/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FadeIn>
-            <SectionHeading title={t("todaysDeals")} href="/deals" actionLabel={t("viewAll")} />
+            <SectionHeading
+              title={t("todaysDeals")}
+              href="/deals"
+              actionLabel={t("viewAll")}
+            />
             <ProductGrid products={deals.products} locale={locale} />
           </FadeIn>
         </div>
@@ -85,7 +94,11 @@ export default async function HomePage({ params }: Props) {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
-          <SectionHeading title={t("featured")} href="/shop" actionLabel={t("viewAll")} />
+          <SectionHeading
+            title={t("featured")}
+            href="/shop"
+            actionLabel={t("viewAll")}
+          />
           <ProductGrid products={featured.products} locale={locale} />
         </FadeIn>
       </section>
@@ -111,7 +124,11 @@ export default async function HomePage({ params }: Props) {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
-          <SectionHeading title={t("shopByBrand")} href="/brands" actionLabel={t("viewAll")} />
+          <SectionHeading
+            title={t("shopByBrand")}
+            href="/brands"
+            actionLabel={t("viewAll")}
+          />
           <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
             {brands.slice(0, 12).map((brand) => (
               <Link
@@ -128,7 +145,9 @@ export default async function HomePage({ params }: Props) {
                     className="object-contain"
                   />
                 ) : (
-                  <span className="text-center text-sm font-medium">{brand.name}</span>
+                  <span className="text-center text-sm font-medium">
+                    {brand.name}
+                  </span>
                 )}
               </Link>
             ))}

@@ -51,7 +51,7 @@ function sleep(ms: number) {
 }
 
 function isRetryableStatus(status: number) {
-  return status === 403 || status === 408 || status === 429 || status >= 500;
+  return status === 408 || status === 429 || status >= 500;
 }
 
 async function storeFetchOnce<T>(
@@ -66,7 +66,7 @@ async function storeFetchOnce<T>(
     nonce,
     cache,
     next,
-    timeoutMs = 20_000,
+    timeoutMs = 8_000,
   } = options;
 
   const controller = new AbortController();
@@ -169,7 +169,7 @@ export async function storeFetch<T>(
   options: StoreRequestOptions,
 ): Promise<StoreResponse<T>> {
   const method = options.method ?? "GET";
-  const retries = options.retries ?? (method === "GET" ? 2 : 0);
+  const retries = options.retries ?? (method === "GET" ? 1 : 0);
 
   let lastError: unknown;
   for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -180,7 +180,7 @@ export async function storeFetch<T>(
       const retryable =
         error instanceof WooCommerceError && isRetryableStatus(error.status);
       if (!retryable || attempt === retries) throw error;
-      await sleep(400 * (attempt + 1));
+      await sleep(200 * (attempt + 1));
     }
   }
   throw lastError;
