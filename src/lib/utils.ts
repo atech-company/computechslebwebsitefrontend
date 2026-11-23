@@ -36,11 +36,7 @@ export function discountPercent(
   return Math.round(((regular - sale) / regular) * 100);
 }
 
-export function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-export function formatProductDisplayName(value: string): string {
+export function decodeHtmlEntities(value: string): string {
   const namedEntities: Record<string, string> = {
     amp: "&",
     quot: '"',
@@ -59,7 +55,21 @@ export function formatProductDisplayName(value: string): string {
       const parsed = Number.parseInt(code.replace(/^x/i, ""), radix);
       return Number.isFinite(parsed) ? String.fromCodePoint(parsed) : "";
     })
-    .replace(/&([a-z]+);/gi, (entity, name: string) => namedEntities[name] ?? entity)
+    .replace(
+      /&([a-z]+);/gi,
+      (entity, name: string) => namedEntities[name] ?? entity,
+    );
+}
+
+export function stripHtml(html: string): string {
+  return decodeHtmlEntities(html)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function formatProductDisplayName(value: string): string {
+  return decodeHtmlEntities(value)
     .replace(/\)(?=\d)/g, ") ")
     .replace(/(\d\s*GB)(?=\d)/gi, "$1 ")
     .replace(/\s+/g, " ")

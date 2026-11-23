@@ -1,3 +1,5 @@
+import { decodeHtmlEntities } from "@/lib/utils";
+
 export class WooCommerceError extends Error {
   constructor(
     message: string,
@@ -45,19 +47,21 @@ export function parseWooErrorBody(parsed: unknown): {
   };
   const parts: string[] = [];
   if (typeof body.message === "string" && body.message.trim()) {
-    parts.push(body.message.trim());
+    parts.push(decodeHtmlEntities(body.message).trim());
   }
   const params = body.data?.params;
   if (params && typeof params === "object") {
     for (const value of Object.values(params)) {
-      if (typeof value === "string" && value.trim()) parts.push(value.trim());
+      if (typeof value === "string" && value.trim()) {
+        parts.push(decodeHtmlEntities(value).trim());
+      }
     }
   }
   const details = body.data?.details;
   if (details && typeof details === "object") {
     for (const value of Object.values(details)) {
       if (typeof value?.message === "string" && value.message.trim()) {
-        parts.push(value.message.trim());
+        parts.push(decodeHtmlEntities(value.message).trim());
       }
     }
   }

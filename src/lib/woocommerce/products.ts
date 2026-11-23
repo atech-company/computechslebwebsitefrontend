@@ -32,6 +32,7 @@ export interface ProductListParams {
   include?: number[];
   type?: string;
   featured?: boolean;
+  fresh?: boolean;
 }
 
 const CATALOG_REVALIDATE = 120;
@@ -68,8 +69,10 @@ export async function getProducts(params: ProductListParams = {}): Promise<{
   const result = await storeFetch<StoreProduct[]>({
     path: "/products",
     query,
-    cache: "force-cache",
-    next: { revalidate: CATALOG_REVALIDATE, tags: ["products"] },
+    cache: params.fresh ? "no-store" : "force-cache",
+    next: params.fresh
+      ? undefined
+      : { revalidate: CATALOG_REVALIDATE, tags: ["products"] },
   });
 
   return {

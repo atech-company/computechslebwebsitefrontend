@@ -57,6 +57,7 @@ export function CheckoutForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isGatewayError, setIsGatewayError] = useState(false);
+  const [submissionUncertain, setSubmissionUncertain] = useState(false);
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "locating" | "added" | "error"
   >("idle");
@@ -166,6 +167,7 @@ export function CheckoutForm() {
     setSubmitting(true);
     setSubmitError(null);
     setIsGatewayError(false);
+    setSubmissionUncertain(false);
     setSuccess(null);
 
     const { firstName, lastName } = splitFullName(values.full_name);
@@ -214,6 +216,11 @@ export function CheckoutForm() {
       };
 
       if (!res.ok) {
+        if (data.code === "timeout") {
+          setSubmissionUncertain(true);
+          setSubmitError(t("confirmationPending"));
+          return;
+        }
         const detailMessage =
           data.details &&
           typeof data.details === "object" &&
@@ -428,8 +435,16 @@ export function CheckoutForm() {
           </div>
         ) : null}
 
-        <Button type="submit" size="lg" disabled={submitting || !items.length}>
-          {submitting ? tCommon("loading") : t("placeOrder")}
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting || submissionUncertain || !items.length}
+        >
+          {submitting
+            ? tCommon("loading")
+            : submissionUncertain
+              ? t("doNotResubmit")
+              : t("placeOrder")}
         </Button>
       </div>
 

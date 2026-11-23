@@ -5,7 +5,11 @@ import {
   isWooCommerceError,
   WooCommerceError,
 } from "@/lib/woocommerce/errors";
-import type { StoreCart, StoreCheckout } from "@/types/woocommerce";
+import type {
+  StoreCart,
+  StoreCheckout,
+  StoreProduct,
+} from "@/types/woocommerce";
 
 export const CART_TOKEN_COOKIE = "computechs_cart_token";
 export const CART_NONCE_COOKIE = "computechs_cart_nonce";
@@ -282,6 +286,20 @@ export async function addCartItem(input: {
     variation: input.variation,
   };
 
+  const liveProduct = await storeFetch<StoreProduct>({
+    path: `/products/${input.id}`,
+    cache: "no-store",
+    timeoutMs: 6_000,
+    retries: 0,
+  });
+  if (!liveProduct.data.is_in_stock) {
+    throw new WooCommerceError(
+      "This product is currently out of stock. Its availability has been refreshed.",
+      409,
+      "woocommerce_rest_product_out_of_stock",
+    );
+  }
+
   return withSessionUpdate(async (session) => {
     let current = await ensureCartToken(session);
 
@@ -482,6 +500,7 @@ export async function submitCheckout(payload: {
   customer_note?: string;
   payment_method: string;
 }): Promise<StoreCheckout> {
+  const checkoutTimeoutMs = 45_000;
   return withSessionUpdate(async (session) => {
     const cartToken = session.cartToken;
     const nonce = session.nonce;
@@ -511,6 +530,8 @@ export async function submitCheckout(payload: {
           create_account: false,
         },
         cache: "no-store",
+        timeoutMs: checkoutTimeoutMs,
+        retries: 0,
       });
       return {
         data: res.data,
@@ -535,6 +556,8 @@ export async function submitCheckout(payload: {
         create_account: false,
       },
       cache: "no-store",
+      timeoutMs: checkoutTimeoutMs,
+      retries: 0,
     });
     return {
       data: res.data,

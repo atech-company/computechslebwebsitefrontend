@@ -33,6 +33,18 @@ describe("parseWooErrorBody", () => {
     expect(parsed.code).toBe("woocommerce_rest_cart_empty");
     expect(parsed.message).toBe("Cannot create order from empty cart.");
   });
+
+  it("decodes HTML entities in WooCommerce messages", () => {
+    const parsed = parseWooErrorBody({
+      code: "woocommerce_rest_product_out_of_stock",
+      message:
+        "You cannot add &quot;MacBook Pro&quot; because it is out of stock.&#x20;",
+    });
+
+    expect(parsed.message).toBe(
+      'You cannot add "MacBook Pro" because it is out of stock.',
+    );
+  });
 });
 
 describe("isStoreMutationBlocked", () => {

@@ -124,6 +124,8 @@
     "orderStatus": "Status",
     "continuePayment": "Continue to payment",
     "noOrderCreated": "The order could not be created. Try again.",
+    "confirmationPending": "Your order may already have been received, but confirmation is taking longer than expected. Do not place it again. Please check your email or contact us so we can confirm it.",
+    "doNotResubmit": "Order awaiting confirmation",
     "gatewayFallback": "If payment fails, you can finish this order on the WordPress checkout:",
     "wpCheckoutLink": "Open WordPress checkout",
     "emailInUse": "This email already has an account. Use a different email for guest checkout until customer login is connected."

@@ -1,4 +1,7 @@
+"use client";
+
 import { ProductCard } from "@/components/products/product-card";
+import { useProductsByIds } from "@/hooks/use-products-by-ids";
 import { catalogGridClass, type GridView } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import type { AppLocale } from "@/i18n/routing";
@@ -21,6 +24,15 @@ export function ProductGrid({
     (product, index, collection) =>
       collection.findIndex((candidate) => candidate.id === product.id) === index,
   );
+  const { data: liveProducts } = useProductsByIds(
+    uniqueProducts.map((product) => product.id),
+  );
+  const liveById = new Map(
+    liveProducts?.map((product) => [product.id, product]) ?? [],
+  );
+  const currentProducts = uniqueProducts.map(
+    (product) => liveById.get(product.id) ?? product,
+  );
 
   if (!uniqueProducts.length) {
     return (
@@ -38,7 +50,7 @@ export function ProductGrid({
         className,
       )}
     >
-      {uniqueProducts.map((product) => (
+      {currentProducts.map((product) => (
         <ProductCard key={product.id} product={product} locale={locale} />
       ))}
     </div>

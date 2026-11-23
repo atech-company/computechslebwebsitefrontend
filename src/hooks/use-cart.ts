@@ -4,11 +4,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { StoreCart } from "@/types/woocommerce";
 
+class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 async function parseJson<T>(res: Response): Promise<T> {
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(
-      (data as { message?: string })?.message || "Cart request failed",
+    const error = data as { message?: string; code?: string };
+    throw new ApiRequestError(
+      error.message || "Cart request failed",
+      error.code,
     );
   }
   return data as T;
@@ -57,7 +69,15 @@ export function useAddToCart() {
       qc.setQueryData(["cart"], cart);
       toast.success("Added to cart");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => {
+      if (
+        err instanceof ApiRequestError &&
+        err.code?.includes("out_of_stock")
+      ) {
+        void qc.invalidateQueries({ queryKey: ["products-by-ids"] });
+      }
+      toast.error(err.message);
+    },
   });
 }
 

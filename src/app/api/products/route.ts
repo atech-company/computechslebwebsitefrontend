@@ -34,6 +34,7 @@ export async function GET(request: Request) {
             .map((x) => Number(x))
             .filter(Boolean)
         : undefined,
+      fresh: searchParams.get("fresh") === "1",
     });
 
     return jsonOk(result);

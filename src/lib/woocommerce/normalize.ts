@@ -1,5 +1,10 @@
 import type { ProductCardModel, StoreProduct } from "@/types/woocommerce";
-import { discountPercent, formatMoney, stripHtml } from "@/lib/utils";
+import {
+  discountPercent,
+  formatMoney,
+  formatProductDisplayName,
+  stripHtml,
+} from "@/lib/utils";
 
 export function normalizeProduct(product: StoreProduct): ProductCardModel {
   const minor = product.prices.currency_minor_unit ?? 2;
@@ -14,7 +19,7 @@ export function normalizeProduct(product: StoreProduct): ProductCardModel {
 
   return {
     id: product.id,
-    name: product.name,
+    name: formatProductDisplayName(product.name),
     slug: product.slug,
     sku: product.sku || "",
     permalink: product.permalink,
@@ -50,7 +55,7 @@ export function normalizeProduct(product: StoreProduct): ProductCardModel {
     brands: product.brands || [],
     attributes: product.attributes || [],
     isInStock: product.is_in_stock,
-    stockText: product.stock_availability?.text || "",
+    stockText: stripHtml(product.stock_availability?.text || ""),
     lowStockRemaining: product.low_stock_remaining,
     isPurchasable: product.is_purchasable,
     hasOptions: product.has_options,

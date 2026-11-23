@@ -13,7 +13,8 @@ export function useProductsByIds(ids: number[]) {
     enabled: hydrated && ids.length > 0,
     queryFn: async () => {
       const res = await fetch(
-        `/api/products?include=${key}&per_page=${ids.length}`,
+        `/api/products?include=${key}&per_page=${ids.length}&fresh=1`,
+        { cache: "no-store" },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -25,5 +26,7 @@ export function useProductsByIds(ids: number[]) {
         (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
       );
     },
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
   });
 }
