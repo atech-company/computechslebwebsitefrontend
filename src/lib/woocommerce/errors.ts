@@ -14,6 +14,17 @@ export function isWooCommerceError(error: unknown): error is WooCommerceError {
   return error instanceof WooCommerceError;
 }
 
+export function isStoreMutationBlocked(error: unknown): boolean {
+  if (!isWooCommerceError(error)) return false;
+  if (error.status === 401 || error.status === 403) return true;
+  return (
+    error.code === "waf_blocked" ||
+    error.code === "woocommerce_rest_invalid_nonce" ||
+    error.code === "woocommerce_rest_missing_nonce" ||
+    error.code === "rest_cookie_invalid_nonce"
+  );
+}
+
 export function parseWooErrorBody(parsed: unknown): {
   message?: string;
   code?: string;

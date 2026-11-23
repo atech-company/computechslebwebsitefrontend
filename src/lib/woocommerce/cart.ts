@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { storeFetch } from "@/lib/woocommerce/store-client";
-import { isWooCommerceError, WooCommerceError } from "@/lib/woocommerce/errors";
+import {
+  isStoreMutationBlocked,
+  isWooCommerceError,
+  WooCommerceError,
+} from "@/lib/woocommerce/errors";
 import type { StoreCart, StoreCheckout } from "@/types/woocommerce";
 
 export const CART_TOKEN_COOKIE = "computechs_cart_token";
@@ -223,29 +227,90 @@ export async function getCartSafe(): Promise<StoreCart> {
   }
 }
 
+async function ensureCartToken(session: {
+  cartToken: string | null;
+  nonce: string | null;
+}) {
+  if (session.cartToken) return session;
+  const primed = await fetchStoreCart({ cartToken: null, nonce: null });
+  return {
+    cartToken: primed.cartToken ?? session.cartToken,
+    nonce: primed.nonce ?? session.nonce,
+  };
+}
+
+async function postAddItem(
+  session: { cartToken: string | null; nonce: string | null },
+  input: {
+    id: number;
+    quantity: number;
+    variation?: Array<{ attribute: string; value: string }>;
+  },
+  mode: "json" | "query",
+) {
+  const res = await storeFetch<StoreCart>({
+    method: "POST",
+    path: "/cart/add-item",
+    cartToken: session.cartToken,
+    sendNonce: false,
+    query:
+      mode === "query"
+        ? { id: input.id, quantity: input.quantity }
+        : undefined,
+    body:
+      mode === "json"
+        ? {
+            id: input.id,
+            quantity: input.quantity,
+            ...(input.variation?.length ? { variation: input.variation } : {}),
+          }
+        : undefined,
+    cache: "no-store",
+    retries: 0,
+  });
+  return {
+    data: res.data,
+    cartToken: res.cartToken ?? session.cartToken,
+    nonce: res.nonce ?? session.nonce,
+  };
+}
+
 export async function addCartItem(input: {
   id: number;
   quantity?: number;
   variation?: Array<{ attribute: string; value: string }>;
 }): Promise<StoreCart> {
+  const quantity = input.quantity ?? 1;
+  const payload = {
+    id: input.id,
+    quantity,
+    variation: input.variation,
+  };
+
   return withSessionUpdate(async (session) => {
-    const res = await storeFetch<StoreCart>({
-      method: "POST",
-      path: "/cart/add-item",
-      cartToken: session.cartToken,
-      nonce: session.nonce,
-      body: {
-        id: input.id,
-        quantity: input.quantity ?? 1,
-        variation: input.variation,
-      },
-      cache: "no-store",
-    });
-    return {
-      data: res.data,
-      cartToken: res.cartToken,
-      nonce: res.nonce,
-    };
+    let current = await ensureCartToken(session);
+
+    try {
+      return await postAddItem(current, payload, "json");
+    } catch (error) {
+      if (!isStoreMutationBlocked(error)) throw error;
+      const primed = await fetchStoreCart({
+        cartToken: current.cartToken,
+        nonce: null,
+      });
+      current = {
+        cartToken: primed.cartToken ?? current.cartToken,
+        nonce: primed.nonce ?? current.nonce,
+      };
+      try {
+        return await postAddItem(current, payload, "json");
+      } catch (retryError) {
+        if (!isStoreMutationBlocked(retryError) || payload.variation?.length) {
+          throw retryError;
+        }
+        return await postAddItem(current, payload, "query");
+      }
+    }
   });
 }
 
@@ -254,11 +319,12 @@ export async function updateCartItem(input: {
   quantity: number;
 }): Promise<StoreCart> {
   return withSessionUpdate(async (session) => {
+    const current = await ensureCartToken(session);
     const res = await storeFetch<StoreCart>({
       method: "POST",
       path: "/cart/update-item",
-      cartToken: session.cartToken,
-      nonce: session.nonce,
+      cartToken: current.cartToken,
+      sendNonce: false,
       body: {
         key: input.key,
         quantity: input.quantity,
@@ -267,62 +333,65 @@ export async function updateCartItem(input: {
     });
     return {
       data: res.data,
-      cartToken: res.cartToken,
-      nonce: res.nonce,
+      cartToken: res.cartToken ?? current.cartToken,
+      nonce: res.nonce ?? current.nonce,
     };
   });
 }
 
 export async function removeCartItem(key: string): Promise<StoreCart> {
   return withSessionUpdate(async (session) => {
+    const current = await ensureCartToken(session);
     const res = await storeFetch<StoreCart>({
       method: "POST",
       path: "/cart/remove-item",
-      cartToken: session.cartToken,
-      nonce: session.nonce,
+      cartToken: current.cartToken,
+      sendNonce: false,
       body: { key },
       cache: "no-store",
     });
     return {
       data: res.data,
-      cartToken: res.cartToken,
-      nonce: res.nonce,
+      cartToken: res.cartToken ?? current.cartToken,
+      nonce: res.nonce ?? current.nonce,
     };
   });
 }
 
 export async function applyCoupon(code: string): Promise<StoreCart> {
   return withSessionUpdate(async (session) => {
+    const current = await ensureCartToken(session);
     const res = await storeFetch<StoreCart>({
       method: "POST",
       path: "/cart/apply-coupon",
-      cartToken: session.cartToken,
-      nonce: session.nonce,
+      cartToken: current.cartToken,
+      sendNonce: false,
       body: { code },
       cache: "no-store",
     });
     return {
       data: res.data,
-      cartToken: res.cartToken,
-      nonce: res.nonce,
+      cartToken: res.cartToken ?? current.cartToken,
+      nonce: res.nonce ?? current.nonce,
     };
   });
 }
 
 export async function removeCoupon(code: string): Promise<StoreCart> {
   return withSessionUpdate(async (session) => {
+    const current = await ensureCartToken(session);
     const res = await storeFetch<StoreCart>({
       method: "POST",
       path: "/cart/remove-coupon",
-      cartToken: session.cartToken,
-      nonce: session.nonce,
+      cartToken: current.cartToken,
+      sendNonce: false,
       body: { code },
       cache: "no-store",
     });
     return {
       data: res.data,
-      cartToken: res.cartToken,
-      nonce: res.nonce,
+      cartToken: res.cartToken ?? current.cartToken,
+      nonce: res.nonce ?? current.nonce,
     };
   });
 }
@@ -435,7 +504,7 @@ export async function submitCheckout(payload: {
       method: "POST",
       path: "/checkout",
       cartToken,
-      nonce,
+      sendNonce: false,
       body: {
         billing_address: pickAddress(payload.billing_address, BILLING_KEYS),
         shipping_address: pickAddress(payload.shipping_address, SHIPPING_KEYS),

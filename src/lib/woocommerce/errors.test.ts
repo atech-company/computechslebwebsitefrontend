@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseWooErrorBody } from "@/lib/woocommerce/errors";
+import {
+  isStoreMutationBlocked,
+  parseWooErrorBody,
+  WooCommerceError,
+} from "@/lib/woocommerce/errors";
 
 describe("parseWooErrorBody", () => {
   it("reads message and nested address param errors", () => {
@@ -28,5 +32,31 @@ describe("parseWooErrorBody", () => {
     ]);
     expect(parsed.code).toBe("woocommerce_rest_cart_empty");
     expect(parsed.message).toBe("Cannot create order from empty cart.");
+  });
+});
+
+describe("isStoreMutationBlocked", () => {
+  it("treats Hostinger 403 pages as blocked cart mutations", () => {
+    expect(
+      isStoreMutationBlocked(
+        new WooCommerceError("blocked", 403, "waf_blocked"),
+      ),
+    ).toBe(true);
+  });
+
+  it("treats invalid Store API nonces as blocked", () => {
+    expect(
+      isStoreMutationBlocked(
+        new WooCommerceError("bad nonce", 403, "woocommerce_rest_invalid_nonce"),
+      ),
+    ).toBe(true);
+  });
+
+  it("does not treat a missing product as blocked", () => {
+    expect(
+      isStoreMutationBlocked(
+        new WooCommerceError("missing", 400, "woocommerce_rest_invalid_product"),
+      ),
+    ).toBe(false);
   });
 });

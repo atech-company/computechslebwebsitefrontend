@@ -11,6 +11,8 @@ export interface StoreRequestOptions {
   body?: unknown;
   cartToken?: string | null;
   nonce?: string | null;
+  /** When a Cart-Token is present, Woo does not need a nonce. Skip it by default so Hostinger WAF does not 403 custom headers. */
+  sendNonce?: boolean;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
   timeoutMs?: number;
@@ -68,6 +70,8 @@ async function storeFetchOnce<T>(
     next,
     timeoutMs = 8_000,
   } = options;
+  const sendNonce = options.sendNonce ?? Boolean(nonce && !cartToken);
+  const wooOrigin = getServerEnv().WOOCOMMERCE_URL.replace(/\/$/, "");
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -75,14 +79,18 @@ async function storeFetchOnce<T>(
   const headers = new Headers({
     Accept: "application/json",
     "User-Agent": BROWSER_UA,
+    "Accept-Language": "en-US,en;q=0.9",
   });
+  if (method !== "GET") {
+    headers.set("Origin", wooOrigin);
+    headers.set("Referer", `${wooOrigin}/`);
+  }
   if (body !== undefined) {
     headers.set("Content-Type", "application/json");
   }
   if (cartToken) headers.set("Cart-Token", cartToken);
-  if (nonce) {
+  if (sendNonce && nonce) {
     headers.set("Nonce", nonce);
-    headers.set("X-WC-Store-API-Nonce", nonce);
   }
 
   try {
