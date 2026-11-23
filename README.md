@@ -33,6 +33,7 @@ Open [http://localhost:3000/en](http://localhost:3000/en).
 | `AUTH_GOOGLE_CLIENT_ID` / `AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth (redirect `{SITE}/api/auth/google/callback`) |
 | `AUTH_TWILIO_ACCOUNT_SID` / `AUTH_TWILIO_AUTH_TOKEN` / `AUTH_TWILIO_FROM` | SMS OTP for phone registration |
 | `SPONSOR_POPUP_ENABLED` | Instant Drivo popup kill switch (`on` / `off`). Empty uses `content/sponsor-popup.json` |
+| `ADMIN_CAMPAIGN_TOKEN` | Password for `/en/admin/campaigns`. Empty in development leaves the editor open |
 
 ## Scripts
 

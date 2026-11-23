@@ -11,12 +11,12 @@ test("homepage hero carousel changes campaigns", async ({ page }) => {
 
   await expect(
     carousel.getByRole("heading", {
-      name: "Performance that keeps up with your game",
+      name: "Power that stays in the fight.",
     }),
   ).toBeVisible();
   await carousel.getByRole("button", { name: /Go to slide 2:/ }).click();
   await expect(
-    carousel.getByRole("heading", { name: "One device. Every mode." }),
+    carousel.getByRole("heading", { name: "A quieter kind of power." }),
   ).toBeVisible();
 });
 

@@ -7,71 +7,133 @@ import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useReducedMotion } from "motion/react";
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { HeroAccent, HeroSlide } from "@/lib/homepage/hero-slides";
+import type {
+  HeroCampaignSettings,
+  HeroLayout,
+  HeroSlide,
+} from "@/lib/homepage/hero-slides";
 
-const AUTOPLAY_MS = 6500;
-
-const accentStyles: Record<
-  HeroAccent,
+const themes: Record<
+  HeroLayout,
   {
-    glow: string;
-    glowSecondary: string;
-    label: string;
-    chip: string;
-    primary: string;
-    nav: string;
+    section: string;
+    kicker: string;
+    title: string;
+    body: string;
+    cta: string;
+    secondary: string;
+    stage: string;
+    image: string;
   }
 > = {
-  cyan: {
-    glow: "bg-cyan-400/30",
-    glowSecondary: "bg-blue-600/20",
-    label: "text-cyan-200",
-    chip: "border-cyan-300/20 bg-cyan-300/10 text-cyan-50",
-    primary: "bg-cyan-400 text-slate-950 hover:bg-cyan-300",
-    nav: "bg-cyan-300",
+  stage: {
+    section: "bg-[#101114] text-white",
+    kicker: "text-[#d6d3d1]",
+    title: "text-white",
+    body: "text-[#d6d3d1]",
+    cta: "bg-white text-[#101114] hover:bg-[#f5f5f4]",
+    secondary: "border-white/25 text-white hover:bg-white/10",
+    stage: "bg-[#181b22]",
+    image: "object-contain p-6 sm:p-10",
   },
-  blue: {
-    glow: "bg-blue-500/30",
-    glowSecondary: "bg-cyan-500/15",
-    label: "text-blue-200",
-    chip: "border-blue-300/20 bg-blue-300/10 text-blue-50",
-    primary: "bg-blue-400 text-slate-950 hover:bg-blue-300",
-    nav: "bg-blue-300",
+  studio: {
+    section: "bg-[#f5f5f7] text-[#1d1d1f]",
+    kicker: "text-[#6e6e73]",
+    title: "text-[#1d1d1f]",
+    body: "text-[#424245]",
+    cta: "bg-[#1d1d1f] text-white hover:bg-black",
+    secondary: "border-[#1d1d1f]/20 text-[#1d1d1f] hover:bg-black/5",
+    stage: "bg-[#e8e8ed]",
+    image: "object-contain p-4 sm:p-8",
   },
-  violet: {
-    glow: "bg-violet-500/30",
-    glowSecondary: "bg-fuchsia-500/15",
-    label: "text-violet-200",
-    chip: "border-violet-300/20 bg-violet-300/10 text-violet-50",
-    primary: "bg-violet-400 text-slate-950 hover:bg-violet-300",
-    nav: "bg-violet-300",
+  folio: {
+    section: "bg-[#f3efe6] text-[#1c1917]",
+    kicker: "text-[#78716c]",
+    title: "text-[#1c1917]",
+    body: "text-[#44403c]",
+    cta: "bg-[#1c1917] text-[#faf7f2] hover:bg-black",
+    secondary: "border-[#1c1917]/20 text-[#1c1917] hover:bg-black/5",
+    stage: "bg-[#e7e1d6]",
+    image: "object-contain p-6 sm:p-10",
   },
-  emerald: {
-    glow: "bg-emerald-400/25",
-    glowSecondary: "bg-cyan-500/15",
-    label: "text-emerald-200",
-    chip: "border-emerald-300/20 bg-emerald-300/10 text-emerald-50",
-    primary: "bg-emerald-400 text-slate-950 hover:bg-emerald-300",
-    nav: "bg-emerald-300",
+  plate: {
+    section: "bg-[#12171c] text-white",
+    kicker: "text-[#a8b3bd]",
+    title: "text-white",
+    body: "text-[#d5dde4]",
+    cta: "bg-[#e8eef3] text-[#12171c] hover:bg-white",
+    secondary: "border-white/25 text-white hover:bg-white/10",
+    stage: "bg-[#1c242c]",
+    image: "object-contain p-4 sm:p-8",
+  },
+  offer: {
+    section: "bg-[#fffdf8] text-[#171717]",
+    kicker: "text-[#9a3412]",
+    title: "text-[#171717]",
+    body: "text-[#404040]",
+    cta: "bg-[#9a3412] text-white hover:bg-[#7c2d12]",
+    secondary: "border-[#171717]/15 text-[#171717] hover:bg-black/5",
+    stage: "bg-[#f6f1e8]",
+    image: "object-contain p-6",
   },
 };
 
+function CampaignPhoto({
+  slide,
+  priority,
+  active,
+  reduce,
+}: {
+  slide: HeroSlide;
+  priority: boolean;
+  active: boolean;
+  reduce: boolean;
+}) {
+  const drift =
+    active && !reduce && slide.animation === "drift" ? "campaign-drift" : "";
+  return (
+    <>
+      <Image
+        src={slide.mobileImage}
+        alt={slide.imageAlt}
+        fill
+        priority={priority}
+        sizes="100vw"
+        className={cn("md:hidden", themes[slide.layout].image, drift)}
+        style={{ objectPosition: slide.mobilePosition }}
+      />
+      <Image
+        src={slide.desktopImage}
+        alt=""
+        fill
+        priority={priority}
+        sizes="(min-width: 768px) 58vw, 100vw"
+        className={cn("hidden md:block", themes[slide.layout].image, drift)}
+        style={{ objectPosition: slide.desktopPosition }}
+      />
+    </>
+  );
+}
+
 export function HomeHero({
   slides,
+  settings,
   browseLabel = "Browse catalog",
 }: {
   slides: HeroSlide[];
+  settings?: HeroCampaignSettings;
   browseLabel?: string;
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
   const reduce = useReducedMotion();
+  const autoplayMs = settings?.autoplayMs ?? 7000;
+  const pauseOnHover = settings?.pauseOnHover !== false;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     direction: isArabic ? "rtl" : "ltr",
     loop: slides.length > 1,
-    duration: 28,
+    duration: reduce || settings?.animation === "fade" ? 18 : 32,
     watchDrag: slides.length > 1,
   });
   const [selected, setSelected] = useState(0);
@@ -96,42 +158,20 @@ export function HomeHero({
 
   useEffect(() => {
     if (!emblaApi || reduce || paused || slides.length < 2) return;
-    const id = window.setInterval(() => {
-      emblaApi.scrollNext();
-    }, AUTOPLAY_MS);
+    const id = window.setInterval(() => emblaApi.scrollNext(), autoplayMs);
     return () => window.clearInterval(id);
-  }, [emblaApi, reduce, paused, slides.length, selected]);
+  }, [emblaApi, reduce, paused, slides.length, selected, autoplayMs]);
 
-  if (!slides.length) {
-    return (
-      <section className="hero-glow relative overflow-hidden">
-        <div className="mx-auto flex min-h-[52vh] max-w-7xl items-center px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-white">
-            <p className="mb-4 text-sm font-semibold tracking-[0.28em] text-cyan-300">
-              COMPUTECHS
-            </p>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              Premium electronics
-            </h1>
-            <Button asChild size="lg" variant="cyan" className="mt-8">
-              <Link href="/shop">{browseLabel}</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const activeSlide = slides[selected] || slides[0];
-  const accent = accentStyles[activeSlide.accent];
+  if (!slides.length) return null;
 
   return (
     <section
-      className="relative isolate overflow-hidden bg-[#050914] text-white"
+      className="relative bg-[#101114] text-white"
       aria-roledescription="carousel"
       aria-label={isArabic ? "العروض المميزة" : "Featured campaigns"}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      tabIndex={0}
+      onMouseEnter={() => pauseOnHover && setPaused(true)}
+      onMouseLeave={() => pauseOnHover && setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -139,47 +179,23 @@ export function HomeHero({
         }
       }}
       onKeyDown={(event) => {
-        if (event.key === "ArrowLeft") emblaApi?.scrollPrev();
-        if (event.key === "ArrowRight") emblaApi?.scrollNext();
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          emblaApi?.scrollPrev();
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          emblaApi?.scrollNext();
+        }
       }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.08]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(148,163,184,.28) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.28) 1px, transparent 1px)",
-          backgroundSize: "72px 72px",
-          maskImage:
-            "linear-gradient(to bottom, rgba(0,0,0,.9), transparent 88%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute -right-32 top-[-12rem] h-[36rem] w-[36rem] rounded-full blur-[130px] transition-colors duration-700",
-          accent.glow,
-        )}
-      />
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute -bottom-56 -left-24 h-[30rem] w-[30rem] rounded-full blur-[130px] transition-colors duration-700",
-          accent.glowSecondary,
-        )}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
-      />
-
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex touch-pan-y">
           {slides.map((slide, index) => {
-            const slideAccent = accentStyles[slide.accent];
-            const isActive = selected === index;
+            const theme = themes[slide.layout];
+            const active = selected === index;
             const Heading = index === 0 ? "h1" : "h2";
-
+            const imageFirst = slide.layout === "folio";
             return (
               <div
                 key={slide.id}
@@ -187,121 +203,90 @@ export function HomeHero({
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${index + 1} ${isArabic ? "من" : "of"} ${slides.length}: ${slide.title}`}
-                aria-hidden={!isActive}
+                aria-hidden={!active}
               >
-                <div className="mx-auto grid min-h-[42rem] max-w-7xl items-center gap-0 px-4 pb-24 pt-8 sm:min-h-[47rem] sm:gap-6 sm:px-6 sm:pb-36 sm:pt-12 lg:min-h-[42rem] lg:grid-cols-[0.9fr_1.1fr] lg:gap-8 lg:px-8 lg:pb-28 lg:pt-10 xl:gap-12">
+                <div
+                  className={cn(
+                    "grid md:min-h-[34rem] md:grid-cols-12 md:items-center",
+                    theme.section,
+                  )}
+                >
                   <div
                     className={cn(
-                      "relative z-10 max-w-2xl transition duration-700",
-                      isActive
-                        ? "translate-y-0 opacity-100"
-                        : "translate-y-4 opacity-40",
+                      "relative order-2 mx-auto aspect-[4/3] w-full max-w-xl md:aspect-auto md:h-full md:max-w-none",
+                      theme.stage,
+                      imageFirst
+                        ? "md:order-1 md:col-span-6"
+                        : "md:col-span-7 md:col-start-6",
+                      slide.layout === "offer" &&
+                        "aspect-square w-[70%] md:col-span-5 md:col-start-8 md:w-full",
                     )}
                   >
-                    <div
+                    <CampaignPhoto
+                      slide={slide}
+                      priority={index === 0}
+                      active={active}
+                      reduce={Boolean(reduce)}
+                    />
+                  </div>
+
+                  <div
+                    className={cn(
+                      "order-1 flex flex-col justify-center px-5 pb-6 pt-8 sm:px-8 md:col-span-5 md:px-10 md:py-16",
+                      imageFirst
+                        ? "md:order-2 md:col-span-6 md:col-start-7"
+                        : "md:col-start-1 md:row-start-1",
+                      slide.layout === "offer" && "md:col-span-7",
+                    )}
+                  >
+                    <p
                       className={cn(
-                        "mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.2em] backdrop-blur",
-                        slideAccent.label,
+                        "text-[0.72rem] font-semibold uppercase tracking-[0.22em]",
+                        theme.kicker,
                       )}
                     >
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          slideAccent.nav,
-                        )}
-                      />
                       {slide.eyebrow}
-                    </div>
-
-                    <Heading className="max-w-2xl text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] sm:text-5xl lg:text-[3.45rem] xl:text-6xl">
+                    </p>
+                    <Heading
+                      className={cn(
+                        "mt-4 max-w-[14ch] text-balance text-[2.15rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-5xl lg:text-[3.35rem]",
+                        theme.title,
+                      )}
+                    >
                       {slide.title}
                     </Heading>
-
                     {slide.subtitle ? (
-                      <p className="mt-5 max-w-xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+                      <p
+                        className={cn(
+                          "mt-4 max-w-md text-base leading-7 sm:text-[1.05rem]",
+                          theme.body,
+                        )}
+                      >
                         {slide.subtitle}
                       </p>
                     ) : null}
-
-                    {slide.highlights.length > 0 ? (
-                      <div className="mt-6 flex flex-wrap gap-2">
-                        {slide.highlights.map((highlight) => (
-                          <span
-                            key={highlight}
-                            className={cn(
-                              "rounded-full border px-3 py-1.5 text-sm backdrop-blur-sm",
-                              slideAccent.chip,
-                            )}
-                          >
-                            {highlight}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <div className="mt-8 flex flex-wrap gap-3">
-                      <Button
-                        asChild
-                        size="lg"
+                    <div className="mt-7 flex flex-wrap gap-3">
+                      <Link
+                        href={slide.href}
+                        tabIndex={active ? 0 : -1}
                         className={cn(
-                          "border-0 shadow-xl",
-                          slideAccent.primary,
+                          "inline-flex h-12 items-center rounded-full px-5 text-sm font-semibold transition",
+                          theme.cta,
                         )}
                       >
-                        <Link href={slide.href} tabIndex={isActive ? 0 : -1}>
-                          {slide.cta}
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        size="lg"
-                        variant="outline"
-                        className="border-white/20 bg-white/[0.06] text-white backdrop-blur hover:border-white/35 hover:bg-white/10"
+                        {slide.cta}
+                      </Link>
+                      <Link
+                        href="/shop"
+                        tabIndex={active ? 0 : -1}
+                        className={cn(
+                          "inline-flex h-12 items-center rounded-full border px-5 text-sm font-semibold transition",
+                          theme.secondary,
+                        )}
                       >
-                        <Link href="/shop" tabIndex={isActive ? 0 : -1}>
-                          {browseLabel}
-                        </Link>
-                      </Button>
+                        {browseLabel}
+                      </Link>
                     </div>
-                  </div>
-
-                  <div className="relative mx-auto h-[14rem] w-full max-w-2xl sm:h-[22rem] lg:h-[32rem] lg:max-w-none">
-                    <div
-                      aria-hidden
-                      className={cn(
-                        "pointer-events-none absolute left-1/2 top-1/2 h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[80px]",
-                        slideAccent.glow,
-                      )}
-                    />
-                    {slide.image ? (
-                      <div
-                        className={cn(
-                          "relative h-full w-full transition duration-700",
-                          slide.imageStyle === "framed" &&
-                            "overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/60 shadow-2xl shadow-black/40",
-                          isActive
-                            ? "translate-y-0 scale-100 opacity-100"
-                            : "translate-y-3 scale-[0.97] opacity-60",
-                        )}
-                      >
-                        <Image
-                          src={slide.image}
-                          alt=""
-                          fill
-                          preload={index === 0}
-                          className={cn(
-                            "object-contain object-center drop-shadow-[0_30px_54px_rgba(0,0,0,0.48)]",
-                            slide.imageStyle === "framed" && "drop-shadow-none",
-                          )}
-                          sizes="(max-width: 1023px) 92vw, 55vw"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-slate-400">
-                        Campaign media
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -311,107 +296,69 @@ export function HomeHero({
       </div>
 
       {slides.length > 1 ? (
-        <div className="absolute inset-x-0 bottom-5 z-30">
-          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <div className="hidden min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/50 p-1.5 backdrop-blur-xl md:flex">
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  aria-label={`${isArabic ? "انتقل إلى الشريحة" : "Go to slide"} ${index + 1}: ${slide.title}`}
-                  aria-current={index === selected ? "true" : undefined}
-                  className={cn(
-                    "group relative min-w-0 flex-1 rounded-xl px-2 py-2.5 text-start transition",
-                    index === selected
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200",
-                  )}
-                  onClick={() => emblaApi?.scrollTo(index)}
-                >
-                  <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.14em]">
-                    {slide.eyebrow}
-                  </span>
-                  <span
-                    aria-hidden
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20">
+          <div className="pointer-events-auto mx-auto flex max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 rounded-full bg-[#101114]/85 px-3 py-2 text-white shadow-lg backdrop-blur">
+              <div className="flex items-center gap-2">
+                {slides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    aria-label={`${isArabic ? "انتقل إلى الشريحة" : "Go to slide"} ${index + 1}: ${slide.title}`}
+                    aria-current={index === selected ? "true" : undefined}
                     className={cn(
-                      "absolute inset-x-2 bottom-0 h-0.5 origin-left scale-x-0 rounded-full transition-transform duration-500",
-                      accentStyles[slide.accent].nav,
-                      index === selected && "scale-x-100",
+                      "h-2 rounded-full bg-white transition-all",
+                      index === selected ? "w-8" : "w-2 opacity-40",
                     )}
+                    onClick={() => emblaApi?.scrollTo(index)}
                   />
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-1 items-center gap-2 md:hidden">
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  aria-label={`${isArabic ? "انتقل إلى الشريحة" : "Go to slide"} ${index + 1}`}
-                  aria-current={index === selected ? "true" : undefined}
-                  className={cn(
-                    "h-2 rounded-full transition-all",
-                    index === selected
-                      ? cn("w-8", accentStyles[slide.accent].nav)
-                      : "w-2 bg-white/30 hover:bg-white/55",
-                  )}
-                  onClick={() => emblaApi?.scrollTo(index)}
-                />
-              ))}
-              <span className="ms-1 text-xs tabular-nums text-slate-400">
+                ))}
+              </div>
+              <span className="text-xs tabular-nums text-white/80">
                 {String(selected + 1).padStart(2, "0")} /{" "}
                 {String(slides.length).padStart(2, "0")}
               </span>
             </div>
-
-            {!reduce ? (
-              <Button
+            <div className="ms-auto flex gap-1 rounded-full bg-[#101114]/85 p-1 text-white shadow-lg backdrop-blur">
+              {!reduce ? (
+                <button
+                  type="button"
+                  className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10"
+                  aria-label={
+                    paused
+                      ? isArabic
+                        ? "تشغيل العرض التلقائي"
+                        : "Resume autoplay"
+                      : isArabic
+                        ? "إيقاف العرض التلقائي"
+                        : "Pause autoplay"
+                  }
+                  aria-pressed={paused}
+                  onClick={() => setPaused((value) => !value)}
+                >
+                  {paused ? (
+                    <Play className="h-4 w-4" />
+                  ) : (
+                    <Pause className="h-4 w-4" />
+                  )}
+                </button>
+              ) : null}
+              <button
                 type="button"
-                size="icon"
-                variant="outline"
-                className="shrink-0 border-white/15 bg-slate-950/50 text-white backdrop-blur-xl hover:bg-white/10"
-                aria-label={
-                  paused
-                    ? isArabic
-                      ? "تشغيل العرض التلقائي"
-                      : "Resume autoplay"
-                    : isArabic
-                      ? "إيقاف العرض التلقائي"
-                      : "Pause autoplay"
-                }
-                aria-pressed={paused}
-                onClick={() => setPaused((value) => !value)}
-              >
-                {paused ? (
-                  <Play className="h-4 w-4" />
-                ) : (
-                  <Pause className="h-4 w-4" />
-                )}
-              </Button>
-            ) : null}
-
-            <div className="flex shrink-0 gap-1.5">
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="border-white/15 bg-slate-950/50 text-white backdrop-blur-xl hover:bg-white/10"
+                className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10"
                 aria-label={isArabic ? "الشريحة السابقة" : "Previous slide"}
                 onClick={() => emblaApi?.scrollPrev()}
               >
                 <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                size="icon"
-                variant="outline"
-                className="border-white/15 bg-slate-950/50 text-white backdrop-blur-xl hover:bg-white/10"
+                className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10"
                 aria-label={isArabic ? "الشريحة التالية" : "Next slide"}
                 onClick={() => emblaApi?.scrollNext()}
               >
                 <ChevronRight className="h-5 w-5 rtl:rotate-180" />
-              </Button>
+              </button>
             </div>
           </div>
         </div>

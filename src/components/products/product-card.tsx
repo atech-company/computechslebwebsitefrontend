@@ -62,7 +62,7 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950",
+        "group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950",
         className,
       )}
       data-locale={locale}
@@ -164,7 +164,7 @@ export function ProductCard({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
         {product.brands?.[0] ? (
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
             {product.brands[0].name}
@@ -178,10 +178,13 @@ export function ProductCard({
         </Link>
         <ProductPrice product={product} className="mt-auto pt-1" />
 
-        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-          <ProductQuickView product={product} triggerClassName="w-full px-2 sm:px-3" />
+        <div className="mt-2 grid min-w-0 grid-cols-2 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <ProductQuickView
+            product={product}
+            triggerClassName="w-full min-w-0 px-2 [&_span]:max-sm:sr-only"
+          />
           {product.hasOptions ? (
-            <Button asChild size="sm" className="min-w-10 px-3 sm:min-w-32">
+            <Button asChild size="sm" className="w-full min-w-0 px-2 sm:px-3">
               <Link href={`/product/${product.slug}`}>
                 <Settings2 className="h-4 w-4" />
                 <span className="hidden sm:inline">{t("chooseOptions")}</span>
@@ -193,7 +196,7 @@ export function ProductCard({
               size="sm"
               onClick={handleAddToCart}
               disabled={!product.isPurchasable || !product.isInStock || addToCart.isPending}
-              className="min-w-10 px-3 sm:min-w-32"
+              className="w-full min-w-0 px-2 sm:px-3"
               aria-label={`${t("addToCart")}: ${displayName}`}
             >
               {addToCart.isPending ? (

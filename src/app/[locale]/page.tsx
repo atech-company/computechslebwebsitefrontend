@@ -28,7 +28,7 @@ export default async function HomePage({ params }: Props) {
     getBrands(),
   ]);
 
-  const heroSlides = resolveHeroSlides({
+  const hero = resolveHeroSlides({
     deals: deals.products,
     featured: featured.products,
     ctaFallback: t("shopNow"),
@@ -38,7 +38,11 @@ export default async function HomePage({ params }: Props) {
 
   return (
     <div>
-      <HomeHero slides={heroSlides} browseLabel={t("explore")} />
+      <HomeHero
+        slides={hero.slides}
+        settings={hero.settings}
+        browseLabel={t("explore")}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>

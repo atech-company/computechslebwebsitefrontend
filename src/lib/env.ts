@@ -17,6 +17,7 @@ const serverSchema = z.object({
   AUTH_TWILIO_AUTH_TOKEN: z.string().optional().default(""),
   AUTH_TWILIO_FROM: z.string().optional().default(""),
   SPONSOR_POPUP_ENABLED: z.string().optional().default(""),
+  ADMIN_CAMPAIGN_TOKEN: z.string().optional().default(""),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
@@ -39,6 +40,7 @@ export function getServerEnv(): ServerEnv {
     AUTH_TWILIO_AUTH_TOKEN: process.env.AUTH_TWILIO_AUTH_TOKEN,
     AUTH_TWILIO_FROM: process.env.AUTH_TWILIO_FROM,
     SPONSOR_POPUP_ENABLED: process.env.SPONSOR_POPUP_ENABLED,
+    ADMIN_CAMPAIGN_TOKEN: process.env.ADMIN_CAMPAIGN_TOKEN,
   });
   if (!parsed.success) {
     throw new Error(
