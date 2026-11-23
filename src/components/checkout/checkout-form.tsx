@@ -198,6 +198,7 @@ export function CheckoutForm() {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           billing_address,
@@ -247,7 +248,11 @@ export function CheckoutForm() {
       });
       setNotificationOrderId(data.order_id);
       playSuccessSound(successAudio);
-      void queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.setQueryData(["cart"], (previous: StoreCart | undefined) =>
+        previous
+          ? { ...previous, items: [], items_count: 0, coupons: [] }
+          : previous,
+      );
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : tCommon("error"),

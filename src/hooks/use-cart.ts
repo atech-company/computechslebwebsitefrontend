@@ -15,14 +15,26 @@ async function parseJson<T>(res: Response): Promise<T> {
 }
 
 export function useCartQuery() {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["cart"],
-    queryFn: () =>
-      fetch("/api/cart", { credentials: "same-origin" }).then((r) =>
-        parseJson<StoreCart>(r),
-      ),
+    queryFn: async () => {
+      const cart = await fetch("/api/cart", { credentials: "same-origin" }).then(
+        (r) => parseJson<StoreCart>(r),
+      );
+      const previous = qc.getQueryData<StoreCart>(["cart"]);
+      if (
+        (!cart.items || cart.items.length === 0) &&
+        previous?.items?.length
+      ) {
+        return previous;
+      }
+      return cart;
+    },
     retry: 2,
     retryDelay: (attempt) => Math.min(1500 * (attempt + 1), 4000),
+    staleTime: 20_000,
+    placeholderData: (previousData) => previousData,
     refetchOnWindowFocus: false,
   });
 }
@@ -55,6 +67,7 @@ export function useUpdateCartItem() {
     mutationFn: (body: { key: string; quantity: number }) =>
       fetch("/api/cart/update", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).then((r) => parseJson<StoreCart>(r)),
@@ -69,6 +82,7 @@ export function useRemoveCartItem() {
     mutationFn: (body: { key: string }) =>
       fetch("/api/cart/remove", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).then((r) => parseJson<StoreCart>(r)),
@@ -86,6 +100,7 @@ export function useCouponMutation() {
     mutationFn: (body: { code: string; action: "apply" | "remove" }) =>
       fetch("/api/cart/coupon", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }).then((r) => parseJson<StoreCart>(r)),

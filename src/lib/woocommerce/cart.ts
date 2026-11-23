@@ -114,26 +114,20 @@ async function persistSessionIfSafe(options: {
   const outgoingNonce =
     options.outgoingNonce ?? options.incomingNonce ?? latest.nonce;
 
-  // A slower GET /cart that started without a cookie can return a new empty
-  // cart after add-to-cart already saved a full-cart token. Never clobber it.
+  // Never let a GET (or a rotated empty cart) replace a token that already
+  // has items. That is what made Place order say the cart was empty after add.
   if (
     options.keepIncomingIfEmptyRotate &&
-    latest.cartToken &&
-    latest.cartToken !== options.incomingToken &&
-    latest.cartToken !== outgoingToken &&
-    options.outgoingItemCount === 0
+    options.outgoingItemCount === 0 &&
+    (latest.cartToken || options.incomingToken)
   ) {
-    return;
-  }
-
-  if (
-    options.keepIncomingIfEmptyRotate &&
-    options.incomingToken &&
-    outgoingToken &&
-    outgoingToken !== options.incomingToken &&
-    options.outgoingItemCount === 0
-  ) {
-    await persistCartSession(options.incomingToken, options.incomingNonce);
+    if (
+      options.incomingToken &&
+      outgoingToken &&
+      outgoingToken !== options.incomingToken
+    ) {
+      await persistCartSession(options.incomingToken, options.incomingNonce);
+    }
     return;
   }
 
@@ -175,7 +169,8 @@ async function fetchStoreCart(session: {
   if (cartItemCount(retry.data) > 0) return retry;
 
   return {
-    ...first,
+    ...retry,
+    data: retry.data,
     cartToken: session.cartToken,
     nonce: session.nonce,
   };
@@ -488,26 +483,52 @@ export async function submitCheckout(payload: {
   payment_method: string;
 }): Promise<StoreCheckout> {
   return withSessionUpdate(async (session) => {
-    const cartRes = await fetchStoreCart(session);
-    const cartToken = cartRes.cartToken ?? session.cartToken;
-    const nonce = cartRes.nonce ?? session.nonce;
+    const cartToken = session.cartToken;
+    const nonce = session.nonce;
+    const billing = pickAddress(payload.billing_address, BILLING_KEYS);
+    const shipping = pickAddress(payload.shipping_address, SHIPPING_KEYS);
 
-    if (!cartRes.data.items?.length) {
-      throw new WooCommerceError(
-        "Your cart is empty. Add a product before checkout.",
-        400,
-        "woocommerce_rest_cart_empty",
-      );
+    if (!cartToken) {
+      const cartRes = await fetchStoreCart(session);
+      if (!cartRes.data.items?.length) {
+        throw new WooCommerceError(
+          "Your cart is empty. Add a product before checkout.",
+          400,
+          "woocommerce_rest_cart_empty",
+        );
+      }
+      const res = await storeFetch<StoreCheckout>({
+        method: "POST",
+        path: "/checkout",
+        cartToken: cartRes.cartToken,
+        sendNonce: false,
+        body: {
+          billing_address: billing,
+          shipping_address: shipping,
+          customer_note: payload.customer_note || "",
+          payment_method: payload.payment_method,
+          payment_data: [],
+          create_account: false,
+        },
+        cache: "no-store",
+      });
+      return {
+        data: res.data,
+        cartToken: res.cartToken ?? cartRes.cartToken,
+        nonce: res.nonce ?? cartRes.nonce,
+      };
     }
 
+    // Place the order on the current token. A prior GET /cart can look empty
+    // after Hostinger WAF rotation even though add-item succeeded.
     const res = await storeFetch<StoreCheckout>({
       method: "POST",
       path: "/checkout",
       cartToken,
       sendNonce: false,
       body: {
-        billing_address: pickAddress(payload.billing_address, BILLING_KEYS),
-        shipping_address: pickAddress(payload.shipping_address, SHIPPING_KEYS),
+        billing_address: billing,
+        shipping_address: shipping,
         customer_note: payload.customer_note || "",
         payment_method: payload.payment_method,
         payment_data: [],
