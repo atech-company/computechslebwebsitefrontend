@@ -67,20 +67,24 @@ export function ProductCard({
       )}
       data-locale={locale}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-50 dark:bg-slate-900">
+      <div className="catalog-stage relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-200">
         <Link
           href={`/product/${product.slug}`}
           className="absolute inset-0 block"
           aria-label={displayName}
         >
           {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt={imageAlt}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 transition duration-500 group-hover:scale-[1.04]"
-            />
+            <span className="absolute inset-0 p-2.5 sm:p-4">
+              <span className="relative block h-full w-full">
+                <Image
+                  src={imageSrc}
+                  alt={imageAlt}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-contain object-center transition duration-500 group-hover:scale-[1.04]"
+                />
+              </span>
+            </span>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-400">
               {t("noImage")}

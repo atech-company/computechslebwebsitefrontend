@@ -64,13 +64,13 @@ export function AddToCartButton({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-stretch", className)}>
-      <div className="flex h-12 items-center justify-between rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:w-32">
+    <div className={cn("flex w-full min-w-0 flex-wrap gap-2", className)}>
+      <div className="flex h-12 w-[7.25rem] shrink-0 items-center justify-between rounded-xl border border-slate-200 bg-white px-1 dark:border-slate-700 dark:bg-slate-900">
         <button
           type="button"
           onClick={() => setQuantity((current) => clamp(current - 1))}
           disabled={quantity <= minQuantity || addToCart.isPending}
-          className="grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-slate-100 hover:text-foreground disabled:opacity-35 dark:hover:bg-slate-800"
+          className="grid h-10 w-10 place-items-center rounded-lg text-slate-700 disabled:opacity-35 dark:text-slate-200"
           aria-label={t("decreaseQuantity")}
         >
           <Minus className="h-4 w-4" />
@@ -82,7 +82,7 @@ export function AddToCartButton({
           type="button"
           onClick={() => setQuantity((current) => clamp(current + 1))}
           disabled={quantity >= maxQuantity || addToCart.isPending}
-          className="grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-slate-100 hover:text-foreground disabled:opacity-35 dark:hover:bg-slate-800"
+          className="grid h-10 w-10 place-items-center rounded-lg text-slate-700 disabled:opacity-35 dark:text-slate-200"
           aria-label={t("increaseQuantity")}
         >
           <Plus className="h-4 w-4" />
@@ -93,7 +93,7 @@ export function AddToCartButton({
         size="lg"
         disabled={disabled}
         onClick={handleAdd}
-        className="flex-1 shadow-lg shadow-blue-600/20"
+        className="min-w-0 flex-1 px-3 text-sm sm:px-5 sm:text-base"
       >
         {addToCart.isPending ? (
           <LoaderCircle className="h-5 w-5 animate-spin" />
@@ -111,7 +111,7 @@ export function AddToCartButton({
           variant="cyan"
           disabled={disabled}
           onClick={handleBuyNow}
-          className="flex-1"
+          className="min-w-0 flex-[1_1_100%] px-3 text-center text-sm sm:flex-[1_1_auto] sm:px-5 sm:text-base"
         >
           {t("buyNow")}
         </Button>

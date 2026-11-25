@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Headphones, PackageCheck, ShieldCheck, Star, Truck } from "lucide-react";
+import { PackageCheck, Star } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { FadeIn } from "@/components/animations/fade-in";
 import { ProductGallery } from "@/components/products/product-gallery";
-import { ProductPrice } from "@/components/products/product-price";
 import { ProductSpecifications } from "@/components/products/product-specifications";
-import { AddToCartButton } from "@/components/products/add-to-cart-button";
+import { ProductPurchasePanel } from "@/components/products/product-purchase-panel";
 import { RecordRecentlyViewed } from "@/components/products/record-recently-viewed";
 import { ProductGrid } from "@/components/products/product-grid";
 import { Badge } from "@/components/ui/badge";
@@ -55,13 +54,12 @@ export default async function ProductPage({ params }: Props) {
     : null;
 
   return (
-    <main className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[38rem] bg-[radial-gradient(circle_at_15%_10%,rgba(6,182,212,0.09),transparent_32%),radial-gradient(circle_at_85%_15%,rgba(37,99,235,0.10),transparent_35%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+    <main className="min-w-0">
+      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-8 lg:px-8">
         <RecordRecentlyViewed productId={product.id} />
 
         <nav
-          className="mb-6 flex min-w-0 items-center gap-2 overflow-hidden text-sm text-muted"
+          className="mb-4 flex min-w-0 items-center gap-2 overflow-hidden text-xs text-muted sm:mb-6 sm:text-sm"
           aria-label="Breadcrumb"
         >
           <Link href="/" className="shrink-0 transition hover:text-blue-600">
@@ -72,127 +70,75 @@ export default async function ProductPage({ params }: Props) {
             {t("shop")}
           </Link>
           <span aria-hidden="true">/</span>
-          <span className="truncate text-foreground/75">{displayName}</span>
+          <span className="min-w-0 truncate text-foreground/75">{displayName}</span>
         </nav>
 
-        <FadeIn>
-          <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.06)] backdrop-blur sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-950/85">
-            <div className="grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-12">
-              <ProductGallery images={product.images} productName={displayName} />
+        <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,52fr)_minmax(0,48fr)] lg:items-start lg:gap-10">
+          <div className="min-w-0">
+            <ProductGallery images={product.images} productName={displayName} />
+          </div>
 
-              <div className="flex min-w-0 flex-col lg:py-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  {product.brands[0] ? (
-                    <Badge variant="secondary">{product.brands[0].name}</Badge>
-                  ) : null}
-                  <Badge variant={product.isInStock ? "stock" : "secondary"}>
-                    <span className="me-1 inline-block h-1.5 w-1.5 rounded-full bg-current" />
-                    {product.stockText ||
-                      (product.isInStock ? t("inStock") : t("outOfStock"))}
-                  </Badge>
-                  {product.averageRating > 0 ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      {product.averageRating}
-                    </span>
-                  ) : null}
-                </div>
-
-                <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-[2.4rem] dark:text-white">
-                  {headline}
-                </h1>
-
-                <div className="mt-5 flex flex-wrap items-end gap-3">
-                  <ProductPrice
-                    product={product}
-                    className="[&_span:first-child]:text-2xl"
-                  />
-                  {product.onSale && product.discountPercent ? (
-                    <span className="mb-0.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:bg-rose-950/60 dark:text-rose-300">
-                      {t("savePercent", { percent: product.discountPercent })}
-                    </span>
-                  ) : null}
-                </div>
-
-                {product.sku ? (
-                  <p className="mt-3 text-sm text-muted">
-                    {t("sku")}: {" "}
-                    <span className="font-medium text-foreground/80">{product.sku}</span>
-                  </p>
-                ) : null}
-
-                {product.shortDescription ? (
-                  <p className="mt-5 border-s-2 border-cyan-400 ps-4 text-base leading-relaxed text-foreground/75">
-                    {product.shortDescription}
-                  </p>
-                ) : null}
-
-                {highlights.length ? (
-                  <div className="mt-6 grid grid-cols-2 gap-2.5">
-                    {highlights.map((attribute) => {
-                      const presentation = getSpecificationPresentation(attribute.name);
-                      return (
-                        <a
-                          key={`${attribute.id}-${attribute.name}`}
-                          href="#specifications"
-                          className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-3 transition hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-blue-800 dark:hover:bg-slate-900"
-                        >
-                          <div className="flex items-center gap-2 text-sm text-muted">
-                            <span
-                              className="text-lg transition-transform group-hover:scale-110"
-                              aria-hidden="true"
-                            >
-                              {presentation.emoji}
-                            </span>
-                            <span className="truncate">{attribute.name}</span>
-                          </div>
-                          <p className="mt-1 line-clamp-2 text-sm font-semibold">
-                            {attribute.terms.map((term) => term.name).join(", ")}
-                          </p>
-                        </a>
-                      );
-                    })}
-                  </div>
-                ) : null}
-
-                <div className="mt-7">
-                  <AddToCartButton
-                    productId={product.id}
-                    isPurchasable={product.isPurchasable}
-                    isInStock={product.isInStock}
-                    minQuantity={product.addToCart.minimum}
-                    maxQuantity={product.addToCart.maximum}
-                    openCartOnSuccess
-                  />
-                </div>
-
-                {waUrl ? (
-                  <Button asChild variant="outline" className="mt-3 w-full" size="lg">
-                    <a href={waUrl} target="_blank" rel="noreferrer">
-                      {t("whatsapp")}
-                    </a>
-                  </Button>
-                ) : null}
-
-                <div className="mt-6 grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 dark:border-slate-800">
-                  {[
-                    { icon: ShieldCheck, label: t("warrantySupport") },
-                    { icon: Truck, label: t("localDelivery") },
-                    { icon: Headphones, label: t("expertHelp") },
-                  ].map(({ icon: Icon, label }) => (
-                    <div
-                      key={label}
-                      className="flex flex-col items-center gap-1.5 text-center text-xs text-muted sm:flex-row sm:text-start"
-                    >
-                      <Icon className="h-4 w-4 shrink-0 text-blue-600 dark:text-cyan-400" />
-                      <span>{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="flex min-w-0 flex-col">
+            <div className="flex flex-wrap items-center gap-2">
+              {product.brands[0] ? (
+                <Badge variant="secondary">{product.brands[0].name}</Badge>
+              ) : null}
+              <Badge variant={product.isInStock ? "stock" : "secondary"}>
+                <span className="me-1 inline-block h-1.5 w-1.5 rounded-full bg-current" />
+                {product.stockText ||
+                  (product.isInStock ? t("inStock") : t("outOfStock"))}
+              </Badge>
+              {product.averageRating > 0 ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                  <Star className="h-3.5 w-3.5 fill-current" />
+                  {product.averageRating}
+                </span>
+              ) : null}
             </div>
-          </section>
-        </FadeIn>
+
+            <h1 className="mt-3 break-words text-2xl font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-3xl lg:text-[2.05rem] dark:text-white">
+              {headline}
+            </h1>
+
+            {product.sku ? (
+              <p className="mt-3 break-all text-sm text-muted">
+                {t("sku")}:{" "}
+                <span className="font-medium text-foreground/80">{product.sku}</span>
+              </p>
+            ) : null}
+
+            {product.shortDescription ? (
+              <p className="mt-4 break-words text-sm leading-relaxed text-foreground/75 sm:text-base">
+                {product.shortDescription}
+              </p>
+            ) : null}
+
+            {highlights.length ? (
+              <div className="mt-5 grid min-w-0 grid-cols-2 gap-2">
+                {highlights.map((attribute) => {
+                  const presentation = getSpecificationPresentation(attribute.name);
+                  return (
+                    <a
+                      key={`${attribute.id}-${attribute.name}`}
+                      href="#specifications"
+                      className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60"
+                    >
+                      <div className="flex min-w-0 items-center gap-2 text-xs text-muted">
+                        <span aria-hidden="true">{presentation.emoji}</span>
+                        <span className="min-w-0 break-words">{attribute.name}</span>
+                      </div>
+                      <p className="mt-1 break-words text-sm font-semibold">
+                        {attribute.terms.map((term) => term.name).join(", ")}
+                      </p>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            <ProductPurchasePanel product={product} whatsappUrl={waUrl} />
+          </div>
+        </section>
 
         {specifications.length ? (
           <ProductSpecifications attributes={specifications} className="mt-10" />
@@ -200,22 +146,19 @@ export default async function ProductPage({ params }: Props) {
 
         {product.description ? (
           <FadeIn delay={0.08}>
-            <section className="mt-10 rounded-[2rem] border border-slate-200/80 bg-white p-6 sm:p-8 dark:border-slate-800 dark:bg-slate-950">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-cyan-400">
+            <section className="mt-10 min-w-0 rounded-xl border border-slate-200 bg-white p-5 sm:p-8 dark:border-slate-800 dark:bg-slate-950">
+              <div className="mb-4 flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-cyan-400">
                   <PackageCheck className="h-5 w-5" />
                 </span>
-                <div>
-                  <p className="text-sm font-medium text-blue-600 dark:text-cyan-400">
-                    {t("moreToKnow")}
-                  </p>
-                  <h2 className="text-2xl font-semibold tracking-tight">
+                <div className="min-w-0">
+                  <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
                     {t("description")}
                   </h2>
                 </div>
               </div>
               <div
-                className="prose prose-slate max-w-none text-foreground/75 dark:prose-invert"
+                className="prose prose-slate max-w-none min-w-0 overflow-x-auto text-foreground/75 dark:prose-invert"
                 dangerouslySetInnerHTML={{ __html: product.description }}
               />
             </section>
@@ -223,14 +166,9 @@ export default async function ProductPage({ params }: Props) {
         ) : null}
 
         <FadeIn delay={0.1}>
-          <section className="mt-10 flex flex-col justify-between gap-5 rounded-[2rem] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/50 p-6 sm:flex-row sm:items-center sm:p-8 dark:border-slate-800 dark:from-slate-950 dark:to-amber-950/20">
-            <div>
-              <div className="flex items-center gap-2 text-amber-500" aria-hidden="true">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={index} className="h-4 w-4 fill-current" />
-                ))}
-              </div>
-              <h2 className="mt-3 text-xl font-semibold">{t("reviews")}</h2>
+          <section className="mt-10 flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:p-8 dark:border-slate-800 dark:bg-slate-950">
+            <div className="min-w-0">
+              <h2 className="text-xl font-semibold">{t("reviews")}</h2>
               <p className="mt-1 text-sm text-muted">
                 {product.reviewCount > 0
                   ? t("reviewSummary", {
@@ -247,23 +185,18 @@ export default async function ProductPage({ params }: Props) {
         </FadeIn>
 
         {related.length ? (
-          <section className="mt-16">
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-cyan-400">
-                  {t("keepExploring")}
-                </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  {t("related")}
-                </h2>
-              </div>
+          <section className="mt-14 min-w-0 pb-20 lg:pb-0">
+            <div className="mb-6 flex min-w-0 items-end justify-between gap-4">
+              <h2 className="text-2xl font-semibold tracking-tight">{t("related")}</h2>
               <Button asChild variant="ghost">
                 <Link href="/shop">{t("shopAll")}</Link>
               </Button>
             </div>
             <ProductGrid products={related} locale={locale} />
           </section>
-        ) : null}
+        ) : (
+          <div className="h-16 lg:hidden" />
+        )}
       </div>
     </main>
   );

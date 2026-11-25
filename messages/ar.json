@@ -30,6 +30,9 @@
   },
   "product": {
     "addToCart": "أضف إلى السلة",
+    "addCountToCart": "أضف {count} إلى السلة",
+    "totalAmount": "المبلغ الإجمالي",
+    "youSave": "وفّرت {amount}",
     "buyNow": "اشترِ الآن",
     "outOfStock": "غير متوفر",
     "inStock": "متوفر",
@@ -63,11 +66,16 @@
     "savePercent": "وفّر {percent}%",
     "warrantySupport": "دعم الضمان",
     "localDelivery": "توصيل داخل لبنان",
-    "expertHelp": "مساعدة خبير",
+    "expertHelp": "مساعدة الخبراء",
     "moreToKnow": "معلومات إضافية",
     "reviewSummary": "{count} تقييم · المتوسط {rating}",
     "keepExploring": "تابع الاستكشاف",
-    "shopAll": "عرض الكل"
+    "shopAll": "عرض الكل",
+    "zoomImage": "تكبير الصورة",
+    "closeZoom": "إغلاق معاينة الصورة",
+    "previousImage": "الصورة السابقة",
+    "nextImage": "الصورة التالية",
+    "viewImage": "عرض الصورة"
   },
   "cart": {
     "title": "سلتك",

@@ -30,6 +30,9 @@
   },
   "product": {
     "addToCart": "Add to cart",
+    "addCountToCart": "Add {count} to cart",
+    "totalAmount": "Total amount",
+    "youSave": "You save {amount}",
     "buyNow": "Buy now",
     "outOfStock": "Out of stock",
     "inStock": "In stock",
@@ -63,11 +66,16 @@
     "savePercent": "Save {percent}%",
     "warrantySupport": "Warranty support",
     "localDelivery": "Lebanon delivery",
-    "expertHelp": "Expert help",
+    "expertHelp": "Expert assistance",
     "moreToKnow": "More to know",
     "reviewSummary": "{count} review(s) · average {rating}",
     "keepExploring": "Keep exploring",
-    "shopAll": "Shop all"
+    "shopAll": "Shop all",
+    "zoomImage": "Zoom image",
+    "closeZoom": "Close image preview",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "viewImage": "View image"
   },
   "cart": {
     "title": "Your cart",

@@ -55,7 +55,7 @@ export function ProductQuickView({
 
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto border-0 bg-white p-0 shadow-[0_30px_100px_rgba(2,8,23,0.35)] dark:bg-slate-950">
         <div className="grid lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="relative min-h-72 overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6 sm:min-h-[32rem] sm:p-10 dark:from-slate-900 dark:via-slate-950 dark:to-blue-950/40">
+          <div className="catalog-stage relative min-h-56 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 sm:min-h-[32rem] dark:from-slate-200 dark:via-slate-100 dark:to-blue-100">
             <div className="absolute start-8 top-8 z-10 flex flex-wrap gap-2">
               {product.onSale ? (
                 <Badge variant="sale">
@@ -72,13 +72,17 @@ export function ProductQuickView({
 
             <div className="absolute inset-1/4 rounded-full bg-blue-400/15 blur-3xl" />
             {imageSrc ? (
-              <Image
-                src={imageSrc}
-                alt={product.image?.alt || displayName}
-                fill
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-contain p-10 transition-transform duration-500 hover:scale-[1.04] sm:p-16"
-              />
+              <div className="absolute inset-0 p-5 sm:p-10">
+                <div className="relative h-full w-full">
+                  <Image
+                    src={imageSrc}
+                    alt={product.image?.alt || displayName}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 45vw"
+                    className="object-contain object-center transition-transform duration-500 hover:scale-[1.04]"
+                  />
+                </div>
+              </div>
             ) : (
               <div className="relative flex h-full items-center justify-center text-muted">
                 {t("noImage")}

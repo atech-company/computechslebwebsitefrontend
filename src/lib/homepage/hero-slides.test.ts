@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isCampaignLive, mapCampaignSlides } from "@/lib/homepage/hero-slides";
+import campaignsFile from "../../../content/hero-campaigns.json";
+import {
+  isCampaignLive,
+  mapCampaignSlides,
+  type HeroCampaignFile,
+} from "@/lib/homepage/hero-slides";
 
 describe("hero campaigns", () => {
   it("hides disabled and out-of-window slides, then sorts by order", () => {
@@ -68,5 +73,17 @@ describe("hero campaigns", () => {
   it("treats a missing enabled flag as visible", () => {
     expect(isCampaignLive({})).toBe(true);
     expect(isCampaignLive({ enabled: false })).toBe(false);
+  });
+
+  it("serves local transparent cutouts for live campaigns", () => {
+    const { slides } = mapCampaignSlides(
+      campaignsFile as HeroCampaignFile,
+      "en",
+    );
+    expect(slides.length).toBeGreaterThan(0);
+    for (const slide of slides) {
+      expect(slide.desktopImage).toMatch(/^\/hero\/cutouts\/.+\.png$/);
+      expect(slide.mobileImage).toMatch(/^\/hero\/cutouts\/.+\.png$/);
+    }
   });
 });

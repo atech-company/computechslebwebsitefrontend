@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function toMinorUnits(major: number, minorUnit: number): number {
+  if (!Number.isFinite(major) || !Number.isFinite(minorUnit)) return 0;
+  return Math.round(major * 10 ** minorUnit);
+}
+
 export function formatMoney(
   amountMinor: string | number,
   minorUnit: number,

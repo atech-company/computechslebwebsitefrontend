@@ -388,6 +388,23 @@ body {
   }
 }
 
+/* Knock near-white catalog backdrops into the stage color without
+   eating interior whites (logos, keys) the way a luminance filter would. */
+.campaign-stage {
+  isolation: isolate;
+}
+
+.campaign-knockout {
+  mix-blend-mode: multiply;
+  background-color: transparent;
+}
+
+@media (forced-colors: active) {
+  .campaign-knockout {
+    mix-blend-mode: normal;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .campaign-drift {
     animation: campaign-drift 9s ease-in-out infinite;

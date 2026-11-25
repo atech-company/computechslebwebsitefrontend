@@ -35,7 +35,7 @@ const themes: Record<
     cta: "bg-white text-[#101114] hover:bg-[#f5f5f4]",
     secondary: "border-white/25 text-white hover:bg-white/10",
     stage: "bg-[#181b22]",
-    image: "object-contain p-6 sm:p-10",
+    image: "object-contain p-6 sm:p-10 drop-shadow-[0_28px_48px_rgba(0,0,0,0.45)]",
   },
   studio: {
     section: "bg-[#f5f5f7] text-[#1d1d1f]",
@@ -45,7 +45,7 @@ const themes: Record<
     cta: "bg-[#1d1d1f] text-white hover:bg-black",
     secondary: "border-[#1d1d1f]/20 text-[#1d1d1f] hover:bg-black/5",
     stage: "bg-[#e8e8ed]",
-    image: "object-contain p-4 sm:p-8",
+    image: "object-contain p-4 sm:p-8 drop-shadow-[0_18px_32px_rgba(0,0,0,0.12)]",
   },
   folio: {
     section: "bg-[#f3efe6] text-[#1c1917]",
@@ -55,7 +55,7 @@ const themes: Record<
     cta: "bg-[#1c1917] text-[#faf7f2] hover:bg-black",
     secondary: "border-[#1c1917]/20 text-[#1c1917] hover:bg-black/5",
     stage: "bg-[#e7e1d6]",
-    image: "object-contain p-6 sm:p-10",
+    image: "object-contain p-6 sm:p-10 drop-shadow-[0_18px_32px_rgba(28,25,23,0.16)]",
   },
   plate: {
     section: "bg-[#12171c] text-white",
@@ -65,7 +65,7 @@ const themes: Record<
     cta: "bg-[#e8eef3] text-[#12171c] hover:bg-white",
     secondary: "border-white/25 text-white hover:bg-white/10",
     stage: "bg-[#1c242c]",
-    image: "object-contain p-4 sm:p-8",
+    image: "object-contain p-4 sm:p-8 drop-shadow-[0_28px_48px_rgba(0,0,0,0.4)]",
   },
   offer: {
     section: "bg-[#fffdf8] text-[#171717]",
@@ -75,9 +75,16 @@ const themes: Record<
     cta: "bg-[#9a3412] text-white hover:bg-[#7c2d12]",
     secondary: "border-[#171717]/15 text-[#171717] hover:bg-black/5",
     stage: "bg-[#f6f1e8]",
-    image: "object-contain p-6",
+    image: "object-contain p-6 drop-shadow-[0_18px_32px_rgba(28,25,23,0.14)]",
   },
 };
+
+const lightStages = new Set<HeroLayout>(["studio", "folio", "offer"]);
+
+function usesCssKnockout(src: string, layout: HeroLayout) {
+  if (lightStages.has(layout)) return true;
+  return /^(https?:)?\/\//i.test(src) || src.includes("/hero/uploads/");
+}
 
 function CampaignPhoto({
   slide,
@@ -100,7 +107,12 @@ function CampaignPhoto({
         fill
         priority={priority}
         sizes="100vw"
-        className={cn("md:hidden", themes[slide.layout].image, drift)}
+        className={cn(
+          "md:hidden",
+          themes[slide.layout].image,
+          drift,
+          usesCssKnockout(slide.mobileImage, slide.layout) && "campaign-knockout",
+        )}
         style={{ objectPosition: slide.mobilePosition }}
       />
       <Image
@@ -109,7 +121,12 @@ function CampaignPhoto({
         fill
         priority={priority}
         sizes="(min-width: 768px) 58vw, 100vw"
-        className={cn("hidden md:block", themes[slide.layout].image, drift)}
+        className={cn(
+          "hidden md:block",
+          themes[slide.layout].image,
+          drift,
+          usesCssKnockout(slide.desktopImage, slide.layout) && "campaign-knockout",
+        )}
         style={{ objectPosition: slide.desktopPosition }}
       />
     </>
@@ -213,7 +230,7 @@ export function HomeHero({
                 >
                   <div
                     className={cn(
-                      "relative order-2 mx-auto aspect-[4/3] w-full max-w-xl md:aspect-auto md:h-full md:max-w-none",
+                      "campaign-stage relative order-2 mx-auto aspect-[4/3] w-full max-w-xl md:aspect-auto md:h-full md:max-w-none",
                       theme.stage,
                       imageFirst
                         ? "md:order-1 md:col-span-6"
