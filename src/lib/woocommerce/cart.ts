@@ -439,51 +439,22 @@ function pickAddress(
   return next;
 }
 
-function emptyCheckout(cart: StoreCart): StoreCheckout {
-  return {
-    order_id: 0,
-    status: "",
-    order_key: "",
-    order_number: "",
-    customer_note: "",
-    customer_id: 0,
-    billing_address: {},
-    shipping_address: {},
-    payment_method: cart.payment_methods?.[0] ?? "",
-    payment_result: null,
-    additional_fields: {},
-    __experimentalCart: cart,
-  };
-}
-
 export async function getCheckout(): Promise<StoreCheckout> {
   return withSessionUpdate(async (session) => {
-    const cartRes = await fetchStoreCart(session);
-    const cartToken = cartRes.cartToken ?? session.cartToken;
-    const nonce = cartRes.nonce ?? session.nonce;
-    const cart = cartRes.data;
-
-    if (!cart.items?.length) {
-      return {
-        data: emptyCheckout(cart),
-        cartToken: session.cartToken ?? cartToken,
-        nonce: session.nonce ?? nonce,
-      };
-    }
-
+    const current = await ensureCartToken(session);
     const res = await storeFetch<StoreCheckout>({
       path: "/checkout",
-      cartToken,
-      nonce,
+      cartToken: current.cartToken,
+      nonce: current.nonce,
       sendNonce: true,
       cache: "no-store",
     });
     return {
       data: res.data,
-      cartToken: res.cartToken ?? cartToken,
-      nonce: res.nonce ?? nonce,
+      cartToken: res.cartToken ?? current.cartToken,
+      nonce: res.nonce ?? current.nonce,
     };
-  }, { keepIncomingIfEmptyRotate: true });
+  });
 }
 
 export async function submitCheckout(payload: {

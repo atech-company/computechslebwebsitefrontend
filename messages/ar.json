@@ -129,6 +129,7 @@
     "shipping": "الشحن",
     "payment": "الدفع",
     "placeOrder": "تأكيد الطلب",
+    "placingOrder": "جارٍ تأكيد الطلب…",
     "guestNote": "شراء كضيف — لا حاجة لحساب.",
     "orderSummary": "ملخص الطلب",
     "email": "البريد الإلكتروني",

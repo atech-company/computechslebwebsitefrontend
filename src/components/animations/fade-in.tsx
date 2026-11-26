@@ -1,9 +1,6 @@
-"use client";
-
-import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
 import { cn } from "@/lib/utils";
 
-interface FadeInProps extends HTMLMotionProps<"div"> {
+interface FadeInProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   delay?: number;
@@ -15,24 +12,22 @@ export function FadeIn({
   className,
   delay = 0,
   y = 16,
+  style,
   ...props
 }: FadeInProps) {
-  const reduceMotion = useReducedMotion();
-
-  if (reduceMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div
-      className={cn(className)}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.45, ease: "easeOut", delay }}
+    <div
+      className={cn("performance-fade-in", className)}
+      style={
+        {
+          ...style,
+          "--fade-delay": `${delay * 1000}ms`,
+          "--fade-y": `${y}px`,
+        } as React.CSSProperties
+      }
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

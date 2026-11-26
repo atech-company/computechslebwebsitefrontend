@@ -129,6 +129,7 @@
     "shipping": "Shipping",
     "payment": "Payment",
     "placeOrder": "Place order",
+    "placingOrder": "Placing order…",
     "guestNote": "Guest checkout — no account required.",
     "orderSummary": "Order summary",
     "email": "Email",

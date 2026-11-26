@@ -41,7 +41,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -49,6 +49,53 @@ body {
   color: var(--foreground);
   font-family: var(--font-display), system-ui, sans-serif;
   min-height: 100vh;
+  overflow-x: clip;
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+.performance-fade-in {
+  --fade-delay: 0ms;
+  --fade-y: 16px;
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .performance-fade-in {
+    animation: performance-fade-in 420ms ease-out both;
+    animation-delay: var(--fade-delay);
+  }
+}
+
+@keyframes performance-fade-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--fade-y), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (content-visibility: auto) {
+  .content-auto-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+  }
+
+  .perf-product-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 430px;
+  }
+}
+
+.native-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 ::selection {
@@ -405,7 +452,7 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
   .campaign-drift {
     animation: campaign-drift 9s ease-in-out infinite;
   }
@@ -478,6 +525,18 @@ body {
   .drivo-popup__panel {
     max-height: 94dvh;
     border-radius: 24px 24px 18px 18px;
+    box-shadow: 0 12px 32px color-mix(in oklab, var(--drivo-navy) 20%, transparent);
+  }
+
+  .drivo-popup__backdrop,
+  .drivo-popup__close,
+  .drivo-popup__site {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .drivo-popup__orb {
+    display: none;
   }
 
   .drivo-popup__grid {
@@ -496,5 +555,21 @@ body {
     max-height: 34vh;
     object-fit: cover;
     object-position: center 18%;
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-no-backdrop {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .mobile-flat-shadow {
+    box-shadow: none !important;
+  }
+
+  .campaign-stage img {
+    filter: none !important;
   }
 }

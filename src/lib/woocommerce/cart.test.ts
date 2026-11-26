@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import {
   addCartItem,
   emptyStoreCart,
+  getCheckout,
   submitCheckout,
 } from "@/lib/woocommerce/cart";
 import { WooCommerceError } from "@/lib/woocommerce/errors";
@@ -70,6 +71,22 @@ describe("submitCheckout", () => {
         nonce: "cart-nonce",
         sendNonce: true,
         timeoutMs: 45_000,
+      }),
+    );
+  });
+});
+
+describe("getCheckout", () => {
+  it("warms checkout directly when a cart session already exists", async () => {
+    await getCheckout();
+
+    expect(storeFetch).toHaveBeenCalledTimes(1);
+    expect(storeFetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: "/checkout",
+        cartToken: "cart-token",
+        nonce: "cart-nonce",
+        sendNonce: true,
       }),
     );
   });

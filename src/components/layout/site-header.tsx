@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   GitCompareArrows,
   Heart,
@@ -20,12 +20,19 @@ import {
   MegaMenu,
   type MegaMenuCategory,
 } from "@/components/layout/mega-menu";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { SearchDialog } from "@/components/layout/search-dialog";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { useCartQuery } from "@/hooks/use-cart";
 import { useHydrated } from "@/hooks/use-hydrated";
+
+const MobileNav = dynamic(
+  () => import("@/components/layout/mobile-nav").then((mod) => mod.MobileNav),
+  { ssr: false },
+);
+const SearchDialog = dynamic(
+  () => import("@/components/layout/search-dialog").then((mod) => mod.SearchDialog),
+  { ssr: false },
+);
 
 interface SiteHeaderProps {
   categories?: MegaMenuCategory[];
@@ -48,23 +55,14 @@ export function SiteHeader({
   const t = useTranslations("nav");
   const setSearchOpen = useUiStore((s) => s.setSearchOpen);
   const setMobileNavOpen = useUiStore((s) => s.setMobileNavOpen);
+  const searchOpen = useUiStore((s) => s.searchOpen);
+  const mobileNavOpen = useUiStore((s) => s.mobileNavOpen);
   const toggleCartDrawer = useUiStore((s) => s.toggleCartDrawer);
   const wishlistCount = useWishlistStore((s) => s.ids.length);
   const compareCount = useCompareStore((s) => s.ids.length);
   const { data: cart } = useCartQuery();
   const cartCount = cartCountProp ?? cart?.items_count ?? 0;
   const hydrated = useHydrated();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    const frame = window.requestAnimationFrame(onScroll);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
 
   const navLinks = [
     { href: "/shop" as const, label: t("shop") },
@@ -75,12 +73,7 @@ export function SiteHeader({
   return (
     <>
       <header
-        className={cn(
-          "sticky top-0 z-40 border-b transition-all duration-300",
-          scrolled
-            ? "border-slate-200/80 bg-white/80 shadow-sm shadow-[#0B1120]/5 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B1120]/80"
-            : "border-transparent bg-white/60 backdrop-blur-md dark:bg-[#0B1120]/50",
-        )}
+        className="mobile-no-backdrop sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm shadow-[#0B1120]/5 md:bg-white/80 md:backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B1120]/95 md:dark:bg-[#0B1120]/80"
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:h-[4.25rem] lg:px-8">
           <Button
@@ -193,8 +186,8 @@ export function SiteHeader({
         ) : null}
       </header>
 
-      <MobileNav categories={categories} />
-      <SearchDialog />
+      {mobileNavOpen ? <MobileNav categories={categories} /> : null}
+      {searchOpen ? <SearchDialog /> : null}
     </>
   );
 }

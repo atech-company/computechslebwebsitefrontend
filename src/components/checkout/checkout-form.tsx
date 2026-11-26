@@ -10,8 +10,10 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   CheckCircle2,
   ExternalLink,
+  LoaderCircle,
   MapPin,
   Navigation,
+  Rocket,
 } from "lucide-react";
 import { useCartQuery } from "@/hooks/use-cart";
 import { formatMoney } from "@/lib/utils";
@@ -89,6 +91,27 @@ export function CheckoutForm() {
 
   const locationValue = useWatch({ control, name: "location" });
   const paymentMethod = cart?.payment_methods?.[0] || DEFAULT_PAYMENT;
+  const totals = cart?.totals;
+  const items = cart?.items ?? [];
+  const minor = totals?.currency_minor_unit ?? 2;
+  const currency = totals?.currency_code || "USD";
+  const checkoutWarmupKey = items
+    .map((item) => `${item.key}:${item.quantity}`)
+    .join("|");
+
+  useEffect(() => {
+    if (!checkoutWarmupKey) return;
+
+    const controller = new AbortController();
+    void fetch("/api/checkout", {
+      credentials: "same-origin",
+      signal: controller.signal,
+    })
+      .then((response) => response.text())
+      .catch(() => undefined);
+
+    return () => controller.abort();
+  }, [checkoutWarmupKey]);
 
   useEffect(() => {
     if (!notificationOrderId) return;
@@ -269,11 +292,6 @@ export function CheckoutForm() {
     }
   }
 
-  const totals = cart?.totals;
-  const items = cart?.items ?? [];
-  const minor = totals?.currency_minor_unit ?? 2;
-  const currency = totals?.currency_code || "USD";
-
   if (success) {
     const paymentRedirectUrl =
       success.redirectUrl &&
@@ -440,11 +458,19 @@ export function CheckoutForm() {
           size="lg"
           disabled={submitting || submissionUncertain || !items.length}
         >
-          {submitting
-            ? tCommon("loading")
-            : submissionUncertain
-              ? t("doNotResubmit")
-              : t("placeOrder")}
+          {submitting ? (
+            <>
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+              {t("placingOrder")}
+            </>
+          ) : submissionUncertain ? (
+            t("doNotResubmit")
+          ) : (
+            <>
+              <Rocket className="h-4 w-4" />
+              {t("placeOrder")}
+            </>
+          )}
         </Button>
       </div>
 
