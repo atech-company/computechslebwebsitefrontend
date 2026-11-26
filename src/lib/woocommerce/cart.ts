@@ -5,14 +5,11 @@ import {
   isWooCommerceError,
   WooCommerceError,
 } from "@/lib/woocommerce/errors";
-import type {
-  StoreCart,
-  StoreCheckout,
-  StoreProduct,
-} from "@/types/woocommerce";
+import type { StoreCart, StoreCheckout } from "@/types/woocommerce";
 
 export const CART_TOKEN_COOKIE = "computechs_cart_token";
 export const CART_NONCE_COOKIE = "computechs_cart_nonce";
+const CART_READ_TIMEOUT_MS = 12_000;
 
 export async function readCartSession(): Promise<{
   cartToken: string | null;
@@ -147,7 +144,7 @@ async function fetchStoreCart(session: {
     cartToken: session.cartToken,
     nonce: session.nonce,
     cache: "no-store",
-    timeoutMs: 6_000,
+    timeoutMs: CART_READ_TIMEOUT_MS,
     retries: 1,
   });
 
@@ -167,7 +164,7 @@ async function fetchStoreCart(session: {
     cartToken: session.cartToken,
     nonce: session.nonce,
     cache: "no-store",
-    timeoutMs: 6_000,
+    timeoutMs: CART_READ_TIMEOUT_MS,
     retries: 0,
   });
   if (cartItemCount(retry.data) > 0) return retry;
@@ -285,20 +282,6 @@ export async function addCartItem(input: {
     quantity,
     variation: input.variation,
   };
-
-  const liveProduct = await storeFetch<StoreProduct>({
-    path: `/products/${input.id}`,
-    cache: "no-store",
-    timeoutMs: 6_000,
-    retries: 0,
-  });
-  if (!liveProduct.data.is_in_stock) {
-    throw new WooCommerceError(
-      "This product is currently out of stock. Its availability has been refreshed.",
-      409,
-      "woocommerce_rest_product_out_of_stock",
-    );
-  }
 
   return withSessionUpdate(async (session) => {
     let current = await ensureCartToken(session);
@@ -484,6 +467,7 @@ export async function getCheckout(): Promise<StoreCheckout> {
       path: "/checkout",
       cartToken,
       nonce,
+      sendNonce: true,
       cache: "no-store",
     });
     return {
@@ -520,7 +504,8 @@ export async function submitCheckout(payload: {
         method: "POST",
         path: "/checkout",
         cartToken: cartRes.cartToken,
-        sendNonce: false,
+        nonce: cartRes.nonce,
+        sendNonce: true,
         body: {
           billing_address: billing,
           shipping_address: shipping,
@@ -546,7 +531,8 @@ export async function submitCheckout(payload: {
       method: "POST",
       path: "/checkout",
       cartToken,
-      sendNonce: false,
+      nonce,
+      sendNonce: true,
       body: {
         billing_address: billing,
         shipping_address: shipping,

@@ -11,7 +11,7 @@ export interface StoreRequestOptions {
   body?: unknown;
   cartToken?: string | null;
   nonce?: string | null;
-  /** When a Cart-Token is present, Woo does not need a nonce. Skip it by default so Hostinger WAF does not 403 custom headers. */
+  /** Opt in when a route needs Nonce alongside Cart-Token; Hostinger rejects it on some cart mutations. */
   sendNonce?: boolean;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
