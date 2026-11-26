@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { FadeIn } from "@/components/animations/fade-in";
 import { ProductGallery } from "@/components/products/product-gallery";
+import { ProductSpecificationIcon } from "@/components/products/product-specification-icon";
 import { ProductSpecifications } from "@/components/products/product-specifications";
 import { ProductPurchasePanel } from "@/components/products/product-purchase-panel";
 import { RecordRecentlyViewed } from "@/components/products/record-recently-viewed";
@@ -124,7 +125,10 @@ export default async function ProductPage({ params }: Props) {
                       className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60"
                     >
                       <div className="flex min-w-0 items-center gap-2 text-xs text-muted">
-                        <span aria-hidden="true">{presentation.emoji}</span>
+                        <ProductSpecificationIcon
+                          icon={presentation.icon}
+                          className="h-4 w-4 text-blue-600 dark:text-cyan-400"
+                        />
                         <span className="min-w-0 break-words">{attribute.name}</span>
                       </div>
                       <p className="mt-1 break-words text-sm font-semibold">

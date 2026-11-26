@@ -2,9 +2,26 @@ import { stripHtml } from "@/lib/utils";
 import type { ProductCardModel, StoreAttribute } from "@/types/woocommerce";
 
 export interface SpecificationPresentation {
-  emoji: string;
+  icon: SpecificationIconName;
   accent: string;
 }
+
+export type SpecificationIconName =
+  | "processor"
+  | "memory"
+  | "storage"
+  | "display"
+  | "graphics"
+  | "battery"
+  | "connectivity"
+  | "keyboard"
+  | "camera"
+  | "operatingSystem"
+  | "ports"
+  | "dimensions"
+  | "color"
+  | "warranty"
+  | "generic";
 
 const SPECIFICATION_STYLES: Array<{
   pattern: RegExp;
@@ -13,105 +30,105 @@ const SPECIFICATION_STYLES: Array<{
   {
     pattern: /processor|cpu|chip|core/i,
     presentation: {
-      emoji: "🚀",
+      icon: "processor",
       accent: "from-blue-500/18 via-blue-500/6 to-transparent",
     },
   },
   {
     pattern: /memory|ram/i,
     presentation: {
-      emoji: "⚡",
+      icon: "memory",
       accent: "from-violet-500/18 via-violet-500/6 to-transparent",
     },
   },
   {
     pattern: /storage|ssd|nvme|hard|hdd/i,
     presentation: {
-      emoji: "💾",
+      icon: "storage",
       accent: "from-cyan-500/18 via-cyan-500/6 to-transparent",
     },
   },
   {
     pattern: /display|screen|resolution|touch/i,
     presentation: {
-      emoji: "🖥️",
+      icon: "display",
       accent: "from-sky-500/18 via-sky-500/6 to-transparent",
     },
   },
   {
     pattern: /graphic|gpu|video/i,
     presentation: {
-      emoji: "🎮",
+      icon: "graphics",
       accent: "from-fuchsia-500/18 via-fuchsia-500/6 to-transparent",
     },
   },
   {
     pattern: /battery|power/i,
     presentation: {
-      emoji: "🔋",
+      icon: "battery",
       accent: "from-emerald-500/18 via-emerald-500/6 to-transparent",
     },
   },
   {
     pattern: /wifi|wireless|bluetooth|network|connect/i,
     presentation: {
-      emoji: "📡",
+      icon: "connectivity",
       accent: "from-indigo-500/18 via-indigo-500/6 to-transparent",
     },
   },
   {
     pattern: /keyboard/i,
     presentation: {
-      emoji: "⌨️",
+      icon: "keyboard",
       accent: "from-amber-500/18 via-amber-500/6 to-transparent",
     },
   },
   {
     pattern: /camera|webcam/i,
     presentation: {
-      emoji: "📸",
+      icon: "camera",
       accent: "from-rose-500/18 via-rose-500/6 to-transparent",
     },
   },
   {
     pattern: /system|windows|operating|\bos\b/i,
     presentation: {
-      emoji: "🪟",
+      icon: "operatingSystem",
       accent: "from-blue-500/18 via-cyan-500/6 to-transparent",
     },
   },
   {
     pattern: /port|usb|hdmi|thunderbolt/i,
     presentation: {
-      emoji: "🔌",
+      icon: "ports",
       accent: "from-orange-500/18 via-orange-500/6 to-transparent",
     },
   },
   {
     pattern: /weight|dimension|size/i,
     presentation: {
-      emoji: "🪶",
+      icon: "dimensions",
       accent: "from-teal-500/18 via-teal-500/6 to-transparent",
     },
   },
   {
     pattern: /color|colour|finish/i,
     presentation: {
-      emoji: "🎨",
+      icon: "color",
       accent: "from-pink-500/18 via-pink-500/6 to-transparent",
     },
   },
   {
     pattern: /warranty|guarantee/i,
     presentation: {
-      emoji: "🛡️",
+      icon: "warranty",
       accent: "from-emerald-500/18 via-emerald-500/6 to-transparent",
     },
   },
 ];
 
 const FALLBACK: SpecificationPresentation = {
-  emoji: "✨",
+  icon: "generic",
   accent: "from-slate-500/14 via-slate-500/5 to-transparent",
 };
 

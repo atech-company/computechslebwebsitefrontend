@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { ProductPrice } from "@/components/products/product-price";
+import { ProductSpecificationIcon } from "@/components/products/product-specification-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -122,7 +123,10 @@ export function ProductQuickView({
                       className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/70"
                     >
                       <div className="flex items-center gap-2 text-sm text-muted">
-                        <span aria-hidden="true">{presentation.emoji}</span>
+                        <ProductSpecificationIcon
+                          icon={presentation.icon}
+                          className="h-4 w-4 text-blue-600 dark:text-cyan-400"
+                        />
                         <span className="truncate">{attribute.name}</span>
                       </div>
                       <p className="mt-1 line-clamp-2 text-sm font-semibold">

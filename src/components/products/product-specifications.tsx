@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { ProductSpecificationIcon } from "@/components/products/product-specification-icon";
 import { cn } from "@/lib/utils";
 import { getSpecificationPresentation } from "@/lib/product-specs";
 import type { StoreAttribute } from "@/types/woocommerce";
@@ -74,8 +75,11 @@ export function ProductSpecifications({
                 presentation.accent,
               )}
             >
-              <div className="mb-3 text-xl" aria-hidden="true">
-                {presentation.emoji}
+              <div className="mb-3 grid h-9 w-9 place-items-center rounded-lg bg-white/75 text-blue-600 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-900/75 dark:text-cyan-400 dark:ring-white/10">
+                <ProductSpecificationIcon
+                  icon={presentation.icon}
+                  className="h-5 w-5"
+                />
               </div>
               <dt className="break-words text-sm font-medium text-muted">{attribute.name}</dt>
               <dd className="mt-1 break-words text-base font-semibold leading-snug text-slate-950 dark:text-white">
