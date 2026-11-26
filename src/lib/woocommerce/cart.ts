@@ -243,12 +243,14 @@ async function postAddItem(
     variation?: Array<{ attribute: string; value: string }>;
   },
   mode: "json" | "query",
+  sendNonce: boolean,
 ) {
   const res = await storeFetch<StoreCart>({
     method: "POST",
     path: "/cart/add-item",
     cartToken: session.cartToken,
-    sendNonce: false,
+    nonce: session.nonce,
+    sendNonce,
     query:
       mode === "query"
         ? { id: input.id, quantity: input.quantity }
@@ -287,24 +289,30 @@ export async function addCartItem(input: {
     let current = await ensureCartToken(session);
 
     try {
-      return await postAddItem(current, payload, "json");
+      return await postAddItem(current, payload, "json", false);
     } catch (error) {
       if (!isStoreMutationBlocked(error)) throw error;
-      const primed = await fetchStoreCart({
+      // A rejected Cart-Token must be allowed to rotate here. fetchStoreCart
+      // intentionally preserves an older token on empty reads, which would
+      // make this retry repeat the same unauthorized request forever.
+      const primed = await storeFetch<StoreCart>({
+        path: "/cart",
         cartToken: current.cartToken,
-        nonce: null,
+        cache: "no-store",
+        timeoutMs: CART_READ_TIMEOUT_MS,
+        retries: 1,
       });
       current = {
         cartToken: primed.cartToken ?? current.cartToken,
         nonce: primed.nonce ?? current.nonce,
       };
       try {
-        return await postAddItem(current, payload, "json");
+        return await postAddItem(current, payload, "json", true);
       } catch (retryError) {
         if (!isStoreMutationBlocked(retryError) || payload.variation?.length) {
           throw retryError;
         }
-        return await postAddItem(current, payload, "query");
+        return await postAddItem(current, payload, "query", true);
       }
     }
   });

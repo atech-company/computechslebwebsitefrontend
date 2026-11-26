@@ -4,7 +4,12 @@ vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 vi.mock("@/lib/woocommerce/store-client", () => ({ storeFetch: vi.fn() }));
 
 import { cookies } from "next/headers";
-import { submitCheckout } from "@/lib/woocommerce/cart";
+import {
+  addCartItem,
+  emptyStoreCart,
+  submitCheckout,
+} from "@/lib/woocommerce/cart";
+import { WooCommerceError } from "@/lib/woocommerce/errors";
 import { storeFetch } from "@/lib/woocommerce/store-client";
 import type { StoreCheckout } from "@/types/woocommerce";
 
@@ -65,6 +70,67 @@ describe("submitCheckout", () => {
         nonce: "cart-nonce",
         sendNonce: true,
         timeoutMs: 45_000,
+      }),
+    );
+  });
+});
+
+describe("addCartItem", () => {
+  it("refreshes rejected cart auth and retries with the returned nonce", async () => {
+    const refreshedCart = emptyStoreCart();
+    const addedCart = { ...emptyStoreCart(), items_count: 1 };
+
+    vi.mocked(storeFetch)
+      .mockReset()
+      .mockRejectedValueOnce(
+        new WooCommerceError(
+          "Missing the Nonce header. This endpoint requires a valid nonce.",
+          401,
+          "woocommerce_rest_missing_nonce",
+        ),
+      )
+      .mockResolvedValueOnce({
+        data: refreshedCart,
+        headers: new Headers(),
+        cartToken: "fresh-cart-token",
+        nonce: "fresh-cart-nonce",
+        total: null,
+        totalPages: null,
+      })
+      .mockResolvedValueOnce({
+        data: addedCart,
+        headers: new Headers(),
+        cartToken: "fresh-cart-token",
+        nonce: "next-cart-nonce",
+        total: null,
+        totalPages: null,
+      });
+
+    await expect(addCartItem({ id: 42 })).resolves.toEqual(addedCart);
+
+    expect(storeFetch).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        path: "/cart/add-item",
+        cartToken: "cart-token",
+        nonce: "cart-nonce",
+        sendNonce: false,
+      }),
+    );
+    expect(storeFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        path: "/cart",
+        cartToken: "cart-token",
+      }),
+    );
+    expect(storeFetch).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        path: "/cart/add-item",
+        cartToken: "fresh-cart-token",
+        nonce: "fresh-cart-nonce",
+        sendNonce: true,
       }),
     );
   });
