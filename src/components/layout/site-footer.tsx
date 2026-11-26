@@ -25,7 +25,7 @@ export async function SiteFooter() {
   ];
 
   return (
-    <footer className="mt-auto border-t border-slate-200 bg-[#0B1120] text-slate-300 dark:border-slate-800">
+    <footer className="content-auto-section mt-auto border-t border-slate-200 bg-[#0B1120] text-slate-300 dark:border-slate-800">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:px-8">
         <div className="lg:col-span-4">
           <Link

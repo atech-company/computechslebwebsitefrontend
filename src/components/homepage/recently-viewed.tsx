@@ -15,7 +15,7 @@ export function RecentlyViewedSection({ title }: { title: string }) {
   if (!hydrated || !slice.length || !products.length) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <section className="content-auto-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <SectionHeading title={title} />
       <ProductGrid products={products} />
     </section>

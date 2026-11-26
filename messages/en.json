@@ -87,7 +87,8 @@
     "coupon": "Coupon code",
     "apply": "Apply",
     "remove": "Remove",
-    "update": "Update"
+    "update": "Update",
+    "adding": "Adding item…"
   },
   "catalog": {
     "filters": "Filters",

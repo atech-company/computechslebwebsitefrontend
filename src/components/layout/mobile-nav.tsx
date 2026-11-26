@@ -71,7 +71,7 @@ export function MobileNav({ categories }: MobileNavProps) {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="native-scroll flex-1 overflow-y-auto px-3 py-4">
           <nav aria-label={t("menu")}>
             <ul className="space-y-1">
               {mainLinks.map((link) => (

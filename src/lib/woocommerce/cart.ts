@@ -289,7 +289,10 @@ export async function addCartItem(input: {
     let current = await ensureCartToken(session);
 
     try {
-      return await postAddItem(current, payload, "json", false);
+      // Current WooCommerce Store API versions require Nonce on cart
+      // mutations. Use it immediately when available so a normal add is one
+      // upstream request instead of a guaranteed 401 + refresh + retry.
+      return await postAddItem(current, payload, "json", Boolean(current.nonce));
     } catch (error) {
       if (!isStoreMutationBlocked(error)) throw error;
       // A rejected Cart-Token must be allowed to rotate here. fetchStoreCart

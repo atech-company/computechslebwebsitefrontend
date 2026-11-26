@@ -44,7 +44,7 @@ export default async function HomePage({ params }: Props) {
         browseLabel={t("explore")}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="content-auto-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading
             title={t("shopByCategory")}
@@ -65,7 +65,7 @@ export default async function HomePage({ params }: Props) {
                       alt={cat.name}
                       fill
                       className="object-contain p-6 transition duration-500 group-hover:scale-105"
-                      sizes="25vw"
+                      sizes="(max-width: 767px) 50vw, 25vw"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-sm text-muted">
@@ -83,7 +83,7 @@ export default async function HomePage({ params }: Props) {
         </FadeIn>
       </section>
 
-      <section className="bg-slate-50 py-16 dark:bg-slate-950/40">
+      <section className="content-auto-section bg-slate-50 py-16 dark:bg-slate-950/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FadeIn>
             <SectionHeading
@@ -96,7 +96,7 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="content-auto-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading
             title={t("featured")}
@@ -107,7 +107,7 @@ export default async function HomePage({ params }: Props) {
         </FadeIn>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-8">
+      <section className="content-auto-section mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-8">
         {homepage.promoBanners.map((banner) => (
           <Link
             key={banner.title}
@@ -126,7 +126,7 @@ export default async function HomePage({ params }: Props) {
         ))}
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="content-auto-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading
             title={t("shopByBrand")}
@@ -161,7 +161,7 @@ export default async function HomePage({ params }: Props) {
 
       <RecentlyViewedSection title={t("recentlyViewed")} />
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="content-auto-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading title={t("whyTitle")} />
           <p className="mb-8 max-w-2xl text-muted">{t("whySubtitle")}</p>

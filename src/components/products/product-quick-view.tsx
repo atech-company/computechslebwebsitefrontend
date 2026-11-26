@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Eye, PackageCheck, Settings2, Sparkles } from "lucide-react";
+import { PackageCheck, Settings2, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
@@ -15,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   extractProductSpecifications,
@@ -26,12 +25,14 @@ import type { ProductCardModel } from "@/types/woocommerce";
 
 interface ProductQuickViewProps {
   product: ProductCardModel;
-  triggerClassName?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ProductQuickView({
   product,
-  triggerClassName,
+  open,
+  onOpenChange,
 }: ProductQuickViewProps) {
   const t = useTranslations("product");
   const highlights = extractProductSpecifications(product).slice(0, 4);
@@ -40,21 +41,8 @@ export function ProductQuickView({
   const headline = getProductHeadline(product.name);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className={triggerClassName}
-          aria-label={`${t("quickView")}: ${displayName}`}
-        >
-          <Eye className="h-4 w-4" />
-          <span>{t("quickView")}</span>
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto border-0 bg-white p-0 shadow-[0_30px_100px_rgba(2,8,23,0.35)] dark:bg-slate-950">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="native-scroll max-h-[92vh] max-w-5xl overflow-y-auto border-0 bg-white p-0 shadow-[0_30px_100px_rgba(2,8,23,0.35)] dark:bg-slate-950">
         <div className="grid lg:grid-cols-[0.92fr_1.08fr]">
           <div className="catalog-stage relative min-h-56 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 sm:min-h-[32rem] dark:from-slate-200 dark:via-slate-100 dark:to-blue-100">
             <div className="absolute start-8 top-8 z-10 flex flex-wrap gap-2">

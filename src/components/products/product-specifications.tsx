@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ProductSpecificationIcon } from "@/components/products/product-specification-icon";
@@ -22,7 +21,6 @@ export function ProductSpecifications({
   className,
 }: ProductSpecificationsProps) {
   const t = useTranslations("product");
-  const reduceMotion = useReducedMotion();
   const [expanded, setExpanded] = useState(false);
 
   if (!attributes.length) return null;
@@ -53,25 +51,16 @@ export function ProductSpecifications({
         </p>
       </div>
 
-      <motion.dl
-        layout={!reduceMotion}
-        className="relative grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {visible.map((attribute, index) => {
+      <dl className="relative grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {visible.map((attribute) => {
           const presentation = getSpecificationPresentation(attribute.name);
           const value = attribute.terms.map((term) => term.name).join(", ");
 
           return (
-            <motion.div
-              layout={!reduceMotion}
+            <div
               key={`${attribute.id}-${attribute.name}`}
-              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-              whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.38, delay: Math.min(index * 0.045, 0.3) }}
-              whileHover={reduceMotion ? undefined : { y: -4 }}
               className={cn(
-                "group relative min-w-0 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-br p-4 dark:border-slate-800",
+                "group relative min-w-0 overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-br p-4 md:transition-transform md:hover:-translate-y-1 dark:border-slate-800",
                 presentation.accent,
               )}
             >
@@ -85,10 +74,10 @@ export function ProductSpecifications({
               <dd className="mt-1 break-words text-base font-semibold leading-snug text-slate-950 dark:text-white">
                 {value || "—"}
               </dd>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.dl>
+      </dl>
 
       {hasMore ? (
         <div className="relative mt-6 flex justify-center">

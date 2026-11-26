@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   Check,
+  Eye,
   GitCompareArrows,
   Heart,
   LoaderCircle,
@@ -14,7 +17,6 @@ import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProductPrice } from "@/components/products/product-price";
-import { ProductQuickView } from "@/components/products/product-quick-view";
 import { useAddToCart } from "@/hooks/use-cart";
 import { useCompareStore } from "@/stores/compare-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -23,6 +25,14 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { cn, formatProductDisplayName } from "@/lib/utils";
 import type { ProductCardModel } from "@/types/woocommerce";
 import type { AppLocale } from "@/i18n/routing";
+
+const ProductQuickView = dynamic(
+  () =>
+    import("@/components/products/product-quick-view").then(
+      (mod) => mod.ProductQuickView,
+    ),
+  { ssr: false },
+);
 
 interface ProductCardProps {
   product: ProductCardModel;
@@ -43,6 +53,7 @@ export function ProductCard({
   const toggleCompare = useCompareStore((s) => s.toggle);
   const setCartDrawerOpen = useUiStore((s) => s.setCartDrawerOpen);
   const addToCart = useAddToCart();
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   const isWished = mounted && wished;
   const isCompared = mounted && compared;
@@ -52,17 +63,21 @@ export function ProductCard({
   const added = addToCart.isSuccess && !addToCart.isPending;
 
   const handleAddToCart = async () => {
-    await addToCart.mutateAsync({
-      id: product.id,
-      quantity: product.addToCart.minimum || 1,
-    });
     setCartDrawerOpen(true);
+    try {
+      await addToCart.mutateAsync({
+        id: product.id,
+        quantity: product.addToCart.minimum || 1,
+      });
+    } catch {
+      // The mutation restores the cart and reports the API error.
+    }
   };
 
   return (
     <article
       className={cn(
-        "group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950",
+        "perf-product-card group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg dark:border-slate-800 dark:bg-slate-950",
         className,
       )}
       data-locale={locale}
@@ -119,7 +134,7 @@ export function ProductCard({
             (product.isInStock ? t("inStock") : t("outOfStock"))
           }
           className={cn(
-            "pointer-events-none absolute bottom-2 start-2 z-10 h-6 max-w-[calc(100%-1rem)] gap-1.5 truncate border-white/70 bg-white/90 px-2 text-[11px] font-semibold shadow-md ring-1 ring-slate-900/5 backdrop-blur-md sm:hidden",
+            "mobile-no-backdrop mobile-flat-shadow pointer-events-none absolute bottom-2 start-2 z-10 h-6 max-w-[calc(100%-1rem)] gap-1.5 truncate border-white/70 bg-white/95 px-2 text-[11px] font-semibold shadow-md ring-1 ring-slate-900/5 sm:hidden",
             product.isInStock
               ? "text-emerald-800"
               : "bg-rose-50/95 text-rose-700",
@@ -142,7 +157,7 @@ export function ProductCard({
               size="icon"
               variant="outline"
               className={cn(
-                "h-8 w-8 rounded-full bg-white/90 shadow-sm backdrop-blur sm:h-9 sm:w-9 dark:bg-slate-900/90",
+                "mobile-no-backdrop mobile-flat-shadow h-8 w-8 rounded-full bg-white/95 shadow-sm sm:h-9 sm:w-9 md:backdrop-blur dark:bg-slate-900/95",
                 isWished && "border-cyan-400 text-cyan-600",
               )}
               aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
@@ -156,7 +171,7 @@ export function ProductCard({
               size="icon"
               variant="outline"
               className={cn(
-                "h-8 w-8 rounded-full bg-white/90 shadow-sm backdrop-blur sm:h-9 sm:w-9 dark:bg-slate-900/90",
+                "mobile-no-backdrop mobile-flat-shadow h-8 w-8 rounded-full bg-white/95 shadow-sm sm:h-9 sm:w-9 md:backdrop-blur dark:bg-slate-900/95",
                 isCompared && "border-blue-400 text-blue-600",
               )}
               aria-label={isCompared ? "Remove from compare" : "Add to compare"}
@@ -183,10 +198,17 @@ export function ProductCard({
         <ProductPrice product={product} className="mt-auto pt-1" />
 
         <div className="mt-2 grid min-w-0 grid-cols-2 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-          <ProductQuickView
-            product={product}
-            triggerClassName="w-full min-w-0 px-2 [&_span]:max-sm:sr-only"
-          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="w-full min-w-0 px-2 [&_span]:max-sm:sr-only"
+            aria-label={`${t("quickView")}: ${displayName}`}
+            onClick={() => setQuickViewOpen(true)}
+          >
+            <Eye className="h-4 w-4" />
+            <span>{t("quickView")}</span>
+          </Button>
           {product.hasOptions ? (
             <Button asChild size="sm" className="w-full min-w-0 px-2 sm:px-3">
               <Link href={`/product/${product.slug}`}>
@@ -217,6 +239,13 @@ export function ProductCard({
           )}
         </div>
       </div>
+      {quickViewOpen ? (
+        <ProductQuickView
+          product={product}
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+        />
+      ) : null}
     </article>
   );
 }

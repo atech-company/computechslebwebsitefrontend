@@ -441,6 +441,16 @@ body {
   isolation: isolate;
 }
 
+.campaign-photo {
+  object-position: var(--campaign-mobile-position, center);
+}
+
+@media (min-width: 768px) {
+  .campaign-photo {
+    object-position: var(--campaign-desktop-position, center);
+  }
+}
+
 .campaign-knockout {
   mix-blend-mode: multiply;
   background-color: transparent;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import {
   GitCompareArrows,
@@ -12,7 +13,6 @@ import {
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 import { useCompareStore } from "@/stores/compare-store";
@@ -60,6 +60,8 @@ export function SiteHeader({
   const toggleCartDrawer = useUiStore((s) => s.toggleCartDrawer);
   const wishlistCount = useWishlistStore((s) => s.ids.length);
   const compareCount = useCompareStore((s) => s.ids.length);
+  const [mobileNavLoaded, setMobileNavLoaded] = useState(false);
+  const [searchLoaded, setSearchLoaded] = useState(false);
   const { data: cart } = useCartQuery();
   const cartCount = cartCountProp ?? cart?.items_count ?? 0;
   const hydrated = useHydrated();
@@ -82,7 +84,10 @@ export function SiteHeader({
             size="icon"
             className="lg:hidden"
             aria-label={t("menu")}
-            onClick={() => setMobileNavOpen(true)}
+            onClick={() => {
+              setMobileNavLoaded(true);
+              setMobileNavOpen(true);
+            }}
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -112,7 +117,10 @@ export function SiteHeader({
               variant="ghost"
               size="icon"
               aria-label={t("search")}
-              onClick={() => setSearchOpen(true)}
+              onClick={() => {
+                setSearchLoaded(true);
+                setSearchOpen(true);
+              }}
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -186,8 +194,8 @@ export function SiteHeader({
         ) : null}
       </header>
 
-      {mobileNavOpen ? <MobileNav categories={categories} /> : null}
-      {searchOpen ? <SearchDialog /> : null}
+      {mobileNavLoaded || mobileNavOpen ? <MobileNav categories={categories} /> : null}
+      {searchLoaded || searchOpen ? <SearchDialog /> : null}
     </>
   );
 }

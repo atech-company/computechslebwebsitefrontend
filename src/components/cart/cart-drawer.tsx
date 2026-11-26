@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { LoaderCircle } from "lucide-react";
+import { useIsMutating } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -25,6 +27,7 @@ export function CartDrawer() {
   const { data: cart, isLoading, error } = useCartQuery();
   const updateItem = useUpdateCartItem();
   const removeItem = useRemoveCartItem();
+  const addingCount = useIsMutating({ mutationKey: ["cart", "add"] });
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -33,7 +36,17 @@ export function CartDrawer() {
           <SheetTitle>{t("title")}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-4 flex-1 space-y-4 overflow-y-auto">
+        {addingCount > 0 ? (
+          <p
+            className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-cyan-400"
+            role="status"
+          >
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            {t("adding")}
+          </p>
+        ) : null}
+
+        <div className="native-scroll mt-4 flex-1 space-y-4 overflow-y-auto">
           {isLoading ? (
             <p className="text-sm text-muted">Loading…</p>
           ) : null}

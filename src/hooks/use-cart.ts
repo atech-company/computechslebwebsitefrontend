@@ -26,14 +26,18 @@ async function parseJson<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+export function fetchCartFromApi() {
+  return fetch("/api/cart", { credentials: "same-origin" }).then((response) =>
+    parseJson<StoreCart>(response),
+  );
+}
+
 export function useCartQuery() {
   const qc = useQueryClient();
   return useQuery({
     queryKey: ["cart"],
     queryFn: async () => {
-      const cart = await fetch("/api/cart", { credentials: "same-origin" }).then(
-        (r) => parseJson<StoreCart>(r),
-      );
+      const cart = await fetchCartFromApi();
       const previous = qc.getQueryData<StoreCart>(["cart"]);
       if (
         (!cart.items || cart.items.length === 0) &&
@@ -54,22 +58,46 @@ export function useCartQuery() {
 export function useAddToCart() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: {
+    mutationKey: ["cart", "add"],
+    mutationFn: async (body: {
       id: number;
       quantity?: number;
       variation?: Array<{ attribute: string; value: string }>;
-    }) =>
-      fetch("/api/cart/add", {
+    }) => {
+      // Prime WooCommerce's Cart-Token + Nonce once. When the idle warmup has
+      // already run this is a cache read; on a very fast first click it avoids
+      // the slower unauthorized request/retry path.
+      await qc.ensureQueryData({
+        queryKey: ["cart"],
+        queryFn: fetchCartFromApi,
+        staleTime: 20_000,
+      });
+      return fetch("/api/cart/add", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      }).then((r) => parseJson<StoreCart>(r)),
+      }).then((r) => parseJson<StoreCart>(r));
+    },
+    onMutate: async (body) => {
+      await qc.cancelQueries({ queryKey: ["cart"] });
+      const previous = qc.getQueryData<StoreCart>(["cart"]);
+      if (previous) {
+        qc.setQueryData<StoreCart>(["cart"], {
+          ...previous,
+          items_count: previous.items_count + (body.quantity ?? 1),
+        });
+      }
+      return { previous };
+    },
     onSuccess: (cart) => {
       qc.setQueryData(["cart"], cart);
       toast.success("Added to cart");
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _body, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["cart"], context.previous);
+      }
       if (
         err instanceof ApiRequestError &&
         err.code?.includes("out_of_stock")

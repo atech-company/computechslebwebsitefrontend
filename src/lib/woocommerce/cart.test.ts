@@ -131,7 +131,7 @@ describe("addCartItem", () => {
         path: "/cart/add-item",
         cartToken: "cart-token",
         nonce: "cart-nonce",
-        sendNonce: false,
+        sendNonce: true,
       }),
     );
     expect(storeFetch).toHaveBeenNthCalledWith(

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getImageProps } from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useLocale } from "next-intl";
-import { useReducedMotion } from "motion/react";
 import { Link } from "@/i18n/navigation";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import type {
   HeroCampaignSettings,
@@ -99,36 +99,76 @@ function CampaignPhoto({
 }) {
   const drift =
     active && !reduce && slide.animation === "drift" ? "campaign-drift" : "";
+  const common = {
+    alt: slide.imageAlt,
+    quality: 75,
+    fetchPriority: priority ? ("high" as const) : ("auto" as const),
+    loading: priority ? ("eager" as const) : ("lazy" as const),
+  };
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileProps },
+  } = getImageProps({
+    ...common,
+    src: slide.mobileImage,
+    width: 900,
+    height: 675,
+    sizes: "100vw",
+  });
+  const {
+    props: { src: desktopSrc, srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...common,
+    alt: "",
+    src: slide.desktopImage,
+    width: 1600,
+    height: 900,
+    sizes: "58vw",
+  });
+
   return (
     <>
-      <Image
-        src={slide.mobileImage}
-        alt={slide.imageAlt}
-        fill
-        priority={priority}
-        sizes="100vw"
-        className={cn(
-          "md:hidden",
-          themes[slide.layout].image,
-          drift,
-          usesCssKnockout(slide.mobileImage, slide.layout) && "campaign-knockout",
-        )}
-        style={{ objectPosition: slide.mobilePosition }}
-      />
-      <Image
-        src={slide.desktopImage}
-        alt=""
-        fill
-        priority={priority}
-        sizes="(min-width: 768px) 58vw, 100vw"
-        className={cn(
-          "hidden md:block",
-          themes[slide.layout].image,
-          drift,
-          usesCssKnockout(slide.desktopImage, slide.layout) && "campaign-knockout",
-        )}
-        style={{ objectPosition: slide.desktopPosition }}
-      />
+      {priority ? (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            href={mobileProps.src}
+            imageSrcSet={mobileSrcSet}
+            imageSizes="100vw"
+            media="(max-width: 767px)"
+            fetchPriority="high"
+          />
+          <link
+            rel="preload"
+            as="image"
+            href={desktopSrc}
+            imageSrcSet={desktopSrcSet}
+            imageSizes="58vw"
+            media="(min-width: 768px)"
+            fetchPriority="high"
+          />
+        </>
+      ) : null}
+      <picture>
+        <source media="(min-width: 768px)" srcSet={desktopSrcSet} sizes="58vw" />
+        <img
+          {...mobileProps}
+          alt={slide.imageAlt}
+          srcSet={mobileSrcSet}
+          className={cn(
+            "campaign-photo absolute inset-0 h-full w-full",
+            themes[slide.layout].image,
+            drift,
+            usesCssKnockout(slide.mobileImage, slide.layout) && "campaign-knockout",
+          )}
+          style={
+            {
+              "--campaign-mobile-position": slide.mobilePosition,
+              "--campaign-desktop-position": slide.desktopPosition,
+            } as React.CSSProperties
+          }
+        />
+      </picture>
     </>
   );
 }
@@ -144,7 +184,8 @@ export function HomeHero({
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
-  const reduce = useReducedMotion();
+  const reduce = useMediaQuery("(prefers-reduced-motion: reduce)", true);
+  const isMobile = useMediaQuery("(max-width: 767px)", true);
   const autoplayMs = settings?.autoplayMs ?? 7000;
   const pauseOnHover = settings?.pauseOnHover !== false;
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -155,6 +196,9 @@ export function HomeHero({
   });
   const [selected, setSelected] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [pageVisible, setPageVisible] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -174,15 +218,41 @@ export function HomeHero({
   }, [emblaApi, onSelect]);
 
   useEffect(() => {
-    if (!emblaApi || reduce || paused || slides.length < 2) return;
+    if (
+      !emblaApi ||
+      reduce ||
+      isMobile ||
+      paused ||
+      !visible ||
+      !pageVisible ||
+      slides.length < 2
+    ) return;
     const id = window.setInterval(() => emblaApi.scrollNext(), autoplayMs);
     return () => window.clearInterval(id);
-  }, [emblaApi, reduce, paused, slides.length, selected, autoplayMs]);
+  }, [emblaApi, reduce, isMobile, paused, visible, pageVisible, slides.length, selected, autoplayMs]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(Boolean(entry?.isIntersecting)),
+      { threshold: 0.05 },
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const update = () => setPageVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
 
   if (!slides.length) return null;
 
   return (
     <section
+      ref={sectionRef}
       className="relative bg-[#101114] text-white"
       aria-roledescription="carousel"
       aria-label={isArabic ? "العروض المميزة" : "Featured campaigns"}
@@ -315,7 +385,7 @@ export function HomeHero({
       {slides.length > 1 ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20">
           <div className="pointer-events-auto mx-auto flex max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 rounded-full bg-[#101114]/85 px-3 py-2 text-white shadow-lg backdrop-blur">
+            <div className="mobile-no-backdrop mobile-flat-shadow flex items-center gap-3 rounded-full bg-[#101114]/95 px-3 py-2 text-white shadow-lg md:bg-[#101114]/85 md:backdrop-blur">
               <div className="flex items-center gap-2">
                 {slides.map((slide, index) => (
                   <button
@@ -336,7 +406,7 @@ export function HomeHero({
                 {String(slides.length).padStart(2, "0")}
               </span>
             </div>
-            <div className="ms-auto flex gap-1 rounded-full bg-[#101114]/85 p-1 text-white shadow-lg backdrop-blur">
+            <div className="mobile-no-backdrop mobile-flat-shadow ms-auto flex gap-1 rounded-full bg-[#101114]/95 p-1 text-white shadow-lg md:bg-[#101114]/85 md:backdrop-blur">
               {!reduce ? (
                 <button
                   type="button"
